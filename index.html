@@ -990,9 +990,13 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
               showBackgroundPreview(background);
             }
             const configuredApi = apiUrlInput.value.trim().replace(/\/+$/, "");
-            const apiBase = configuredApi || (["localhost", "127.0.0.1"].includes(window.location.hostname)
-              ? ""
-              : "http://127.0.0.1:8000");
+            const isLocalServerPage = window.location.protocol === "http:"
+              && window.location.port === "8000";
+            const apiBase = configuredApi || (isLocalServerPage
+              ? window.location.origin
+              : (["localhost", "127.0.0.1"].includes(window.location.hostname)
+                ? ""
+                : "http://127.0.0.1:8000"));
             const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},

@@ -392,6 +392,34 @@
             transform: translateX(-50%);
         }
 
+        .scene-9 .scene-overlay::before {
+            opacity: .82;
+            left: 7%;
+            right: 7%;
+            bottom: 22%;
+            height: 105px;
+            border-top: 1px solid rgba(255, 225, 147, .75);
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 18% 45%, #ffe6a0 0 2px, transparent 3px),
+                radial-gradient(circle at 39% 28%, #ffe6a0 0 2px, transparent 3px),
+                radial-gradient(circle at 63% 52%, #ffe6a0 0 2px, transparent 3px),
+                radial-gradient(circle at 82% 33%, #ffe6a0 0 2px, transparent 3px);
+            box-shadow: 0 -10px 30px rgba(255, 221, 142, .32), inset 0 15px 22px rgba(190, 161, 255, .28);
+        }
+
+        .scene-9 .scene-overlay::after {
+            opacity: .7;
+            left: 18%;
+            bottom: 31%;
+            width: 64%;
+            height: 120px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.24);
+            transform: scaleY(.32);
+            box-shadow: 0 0 20px rgba(255, 221, 149, .45);
+        }
+
         /* テキスト・キャッチコピー */
         .text-element {
             position: absolute;
@@ -638,7 +666,8 @@
             ["No.5", "夜空の数字と光の道", "サインと導き", "雲間から差すゴールドの光の道"],
             ["No.6", "月から朝焼け・背中", "転機と夜明け", "しずむ月からラベンダーの朝焼けへ"],
             ["No.7", "月明かりの寝室・湯気", "不安と安らぎ", "ラベンダーの湯気と夜空へ届く手紙"],
-            ["No.8", "霧の扉", "直感と扉", "ラベンダーの霧の先に輝くゴールドの扉"]
+            ["No.8", "霧の扉", "直感と扉", "ラベンダーの霧の先に輝くゴールドの扉"],
+            ["No.9", "水面に映る自分", "自分と輝き", "ゴールドの粒子に縁取られた姿"]
         ];
         const sceneBackgrounds = [
             "linear-gradient(145deg, #17133f, #8561b8 48%, #f0bfda)",
@@ -648,9 +677,9 @@
             "linear-gradient(145deg, #0d173e, #4b397e 55%, #ddb66d)",
             "linear-gradient(145deg, #17143f, #ad82bd 52%, #f5b17f)",
             "linear-gradient(145deg, #121232, #564177 54%, #b993b6)",
-            "linear-gradient(145deg, #3c2d68, #ad87ca 52%, #f4d48b)"
+            "linear-gradient(145deg, #18204d, #6c65a5 50%, #d4b878)"
         ];
-        const sceneImages = Array.from({ length: 8 }, (_, index) => `assets/scene-${index + 1}.jpg`);
+        const sceneImages = Array.from({ length: 9 }, (_, index) => `assets/scene-${index + 1}.jpg`);
 
         function playSound(freq, duration, startTime) {
             if (!audioCtx) return;

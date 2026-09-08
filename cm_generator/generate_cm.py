@@ -100,7 +100,7 @@ def generate_art(path: Path, seed: int, size: tuple[int, int], category: str, me
     draw.text((width // 2, panel_top + 125), message, font=body_font,
               fill=(255, 255, 255, 255), anchor="mm", align="center",
               spacing=10)
-    draw.text((width // 2, height - 82), "毎日の運気メッセージ", font=small_font,
+    draw.text((width // 2, height - 82), "12月オープン予定｜個人鑑定受付中", font=small_font,
               fill=(225, 211, 235, 255), anchor="mm")
     Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)
 

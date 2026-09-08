@@ -200,16 +200,21 @@ def generate_art(
 
 def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 44100) -> None:
     t = np.arange(seconds * sample_rate) / sample_rate
-    # A sparse, low-volume ambient pad avoids the sharp repetition and
-    # dissonant beating of a conventional melody.
-    swell = np.sin(np.pi * np.minimum(t / seconds, 1.0)) ** 1.7
-    pad = (
-        0.11 * np.sin(2 * np.pi * 130.81 * t)
-        + 0.07 * np.sin(2 * np.pi * 164.81 * t)
-        + 0.045 * np.sin(2 * np.pi * 196.0 * t)
-    )
-    air = np.sin(2 * np.pi * 0.18 * t) * 0.012
-    audio = np.clip((pad + air) * swell, -0.16, 0.16)
+    # Sparse, consonant piano-like notes with a soft attack and long decay.
+    notes = ((0.6, 261.63), (3.6, 329.63), (6.6, 392.0), (9.6, 329.63))
+    audio = np.zeros_like(t, dtype=float)
+    for start, frequency in notes:
+        local = t - start
+        active = local >= 0
+        envelope = np.where(active, np.exp(-local / 1.55) * (1 - np.exp(-local / 0.045)), 0)
+        tone = (
+            np.sin(2 * np.pi * frequency * local)
+            + 0.22 * np.sin(2 * np.pi * frequency * 2 * local)
+            + 0.06 * np.sin(2 * np.pi * frequency * 3 * local)
+        )
+        audio += tone * envelope
+    fade = np.minimum(1, t / 1.2) * np.minimum(1, (seconds - t) / 1.8)
+    audio = np.clip(audio * 0.028 * fade, -0.12, 0.12)
     pcm = (audio * 32767).astype(np.int16)
     with wave.open(str(path), "wb") as output:
         output.setnchannels(1)

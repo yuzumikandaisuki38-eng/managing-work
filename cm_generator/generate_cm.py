@@ -209,19 +209,24 @@ def generate_art(
 
 def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 44100) -> None:
     t = np.arange(seconds * sample_rate) / sample_rate
-    # Sparse piano-like notes with a soft attack, low harmonics, and long decay.
-    notes = ((0.8, 261.63), (3.8, 329.63), (6.8, 392.0), (9.8, 329.63))
+    # Original calm cafe/lounge-inspired harmony; this does not copy the
+    # linked recording or any melody from it.
+    chords = (
+        (0.8, (261.63, 329.63, 392.0)),
+        (3.8, (220.0, 261.63, 329.63)),
+        (6.8, (246.94, 293.66, 369.99)),
+        (9.8, (196.0, 246.94, 293.66)),
+    )
     audio = np.zeros_like(t, dtype=float)
-    for start, frequency in notes:
+    for start, frequencies in chords:
         local = t - start
         active = local >= 0
         envelope = np.where(active, np.exp(-local / 1.9) * (1 - np.exp(-local / 0.09)), 0)
-        tone = (
-            np.sin(2 * np.pi * frequency * local)
-            + 0.10 * np.sin(2 * np.pi * frequency * 2 * local)
-            + 0.025 * np.sin(2 * np.pi * frequency * 3 * local)
-        )
-        audio += tone * envelope
+        for frequency in frequencies:
+            audio += (
+                np.sin(2 * np.pi * frequency * local)
+                + 0.06 * np.sin(2 * np.pi * frequency * 2 * local)
+            ) * envelope / len(frequencies)
     fade = np.minimum(1, t / 1.2) * np.minimum(1, (seconds - t) / 1.8)
     audio = np.clip(audio * 0.018 * fade, -0.08, 0.08)
     pcm = (audio * 32767).astype(np.int16)

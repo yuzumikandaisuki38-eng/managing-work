@@ -1,7 +1,9 @@
 cm_bgm_cc0.wav
 
-This audio file was generated for the Tsuiteru CM project and is dedicated to
-the public domain under CC0 1.0 Universal.
+This audio file was newly generated for the Tsuiteru CM project. It is an
+original calm cafe/lounge-inspired composition and does not contain audio
+copied from any YouTube recording. It is dedicated to the public domain under
+CC0 1.0 Universal.
 
 You may copy, modify, distribute, and perform this audio file without
 permission or attribution, to the extent allowed by law.

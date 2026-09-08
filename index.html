@@ -654,15 +654,19 @@
             <label for="cm-background">Base44画像</label>
             <input id="cm-background" type="file" accept="image/png,image/jpeg,image/webp" />
           </div>
+          <div class="cm-date-row">
+            <label for="cm-background-url">画像URL</label>
+            <input id="cm-background-url" type="url" placeholder="https://example.com/image.png" />
+          </div>
           <p class="note">
             <a class="btn secondary" href="https://lucky-title-maker.base44.app/" target="_blank" rel="noopener noreferrer">
               Base44アプリで画像を作る
             </a>
           </p>
           <p class="note">
-            Base44アプリで画像を保存してから、上のファイル欄で選択してください。
-            PNG・JPEG・WebP、6MB以下に対応しています。アプリのページURL自体は画像ではないため、
-            URLを貼り付けるのではなく、保存した画像ファイルを使用します。
+            Base44アプリで画像を保存してからファイル欄で選択するか、画像ファイルのURLを入力してください。
+            PNG・JPEG・WebP、6MB以下に対応しています。Base44アプリのページURL自体は画像ではないため、
+            アプリURLではなく、画像を保存したURLを指定してください。
           </p>
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
 python3 cm_generator/generate_cm.py --output-dir generated</pre>
@@ -807,6 +811,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const copyButton = document.querySelector("#copy-cm-command");
         const generateButton = document.querySelector("#generate-cm");
         const backgroundInput = document.querySelector("#cm-background");
+        const backgroundUrlInput = document.querySelector("#cm-background-url");
         const previewBackground = document.querySelector("#preview-background");
         const status = document.querySelector("#cm-status");
         const files = document.querySelector("#cm-files");
@@ -818,6 +823,10 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           .slice(0, 10);
         dateInput.value = localDate;
 
+        const showBackgroundPreview = (dataUrl) => {
+          previewBackground.src = dataUrl;
+          previewBackground.classList.add("loaded");
+        };
         if (backgroundInput && previewBackground) {
           backgroundInput.addEventListener("change", () => {
             const selected = backgroundInput.files[0];
@@ -827,10 +836,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
               return;
             }
             const reader = new FileReader();
-            reader.onload = () => {
-              previewBackground.src = reader.result;
-              previewBackground.classList.add("loaded");
-            };
+            reader.onload = () => showBackgroundPreview(reader.result);
             reader.onerror = () => {
               previewBackground.removeAttribute("src");
               previewBackground.classList.remove("loaded");
@@ -949,6 +955,29 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
                 reader.onerror = () => reject(new Error("画像を読み込めませんでした。"));
                 reader.readAsDataURL(selected);
               });
+            } else if (backgroundUrlInput.value.trim()) {
+              const imageUrl = backgroundUrlInput.value.trim();
+              let imageResponse;
+              try {
+                imageResponse = await fetch(imageUrl, {mode: "cors"});
+              } catch {
+                throw new Error("画像URLに接続できません。画像ファイルの公開URLとCORS設定を確認してください。");
+              }
+              const contentType = imageResponse.headers.get("content-type") || "";
+              if (!imageResponse.ok || !contentType.startsWith("image/")) {
+                throw new Error("URL先が画像ではありません。Base44アプリのページURLではなく画像URLを指定してください。");
+              }
+              const imageBlob = await imageResponse.blob();
+              if (imageBlob.size > 6 * 1024 * 1024) {
+                throw new Error("画像URLの画像は6MB以下にしてください。");
+              }
+              background = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error("URL画像を読み込めませんでした。"));
+                reader.readAsDataURL(imageBlob);
+              });
+              showBackgroundPreview(background);
             }
             const apiBase = ["localhost", "127.0.0.1"].includes(window.location.hostname)
               ? ""

@@ -41,7 +41,6 @@
             isolation: isolate;
             background-size: cover;
             background-position: center;
-            background-blend-mode: normal;
         }
 
         #video-container::before {
@@ -679,7 +678,6 @@
             "linear-gradient(145deg, #121232, #564177 54%, #b993b6)",
             "linear-gradient(145deg, #18204d, #6c65a5 50%, #d4b878)"
         ];
-        const sceneImages = Array.from({ length: 9 }, (_, index) => `assets/scene-${index + 1}.jpg`);
 
         function playSound(freq, duration, startTime) {
             if (!audioCtx) return;
@@ -743,8 +741,7 @@
                 text3: description,
                 background: sceneBackgrounds[sceneIndex],
                 scene: number,
-                variant: index,
-                image: sceneImages[sceneIndex]
+                variant: index
             };
         }
 
@@ -758,8 +755,7 @@
                 text3: description,
                 scene: number,
                 background: sceneBackgrounds[index - 1],
-                variant: index,
-                image: sceneImages[index - 1]
+                variant: index
             };
         }
 
@@ -779,7 +775,8 @@
             const preview = document.getElementById("video-container");
             preview.className = `scene-${sceneNumber}`;
             preview.id = "video-container";
-            preview.style.backgroundImage = `linear-gradient(145deg, rgba(25, 19, 77, .58), rgba(118, 68, 145, .28)), url("${cm.image || sceneImages[sceneNumber - 1]}")`;
+            preview.style.backgroundImage = "";
+            preview.style.background = cm.background;
             preview.style.setProperty("--variant", String(cm.variant || 1));
             document.getElementById("scene-label").textContent = `${cm.scene || "No.1"} / VARIANT ${cm.variant || 1}`;
             ["text1", "text2", "text3"].forEach((id, i) => {
@@ -895,8 +892,7 @@
                     ...cm,
                     scene: scenePresets[sceneIndex][0],
                     variant: index + 1,
-                    background: sceneBackgrounds[sceneIndex],
-                    image: sceneImages[sceneIndex]
+                    background: sceneBackgrounds[sceneIndex]
                 };
             });
             persist();

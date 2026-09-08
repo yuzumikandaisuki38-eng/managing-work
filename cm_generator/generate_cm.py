@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import shutil
 import subprocess
 import wave
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import imageio_ffmpeg
 
 
 MESSAGES = (
@@ -76,19 +76,10 @@ def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 
 
 
 def generate_video(image: Path, music: Path, output: Path, message: str, category: str) -> None:
-    ffmpeg = shutil.which("ffmpeg")
-    if not ffmpeg:
-        print("FFmpeg not found; skipped MP4 (PNG and WAV were generated).")
-        return
-    drawtext = (
-        "drawtext=text='ツイテル鑑定所':fontcolor=white:fontsize=52:"
-        "x=(w-text_w)/2:y=90,"
-        f"drawtext=text='{category}  {message}':fontcolor=white:fontsize=28:"
-        "x=(w-text_w)/2:y=h-180"
-    )
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     command = [
         ffmpeg, "-y", "-loop", "1", "-i", str(image), "-i", str(music),
-        "-t", "12", "-vf", drawtext, "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        "-t", "12", "-c:v", "libx264", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-shortest", str(output),
     ]
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)

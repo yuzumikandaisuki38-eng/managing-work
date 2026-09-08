@@ -19,7 +19,7 @@ pip install -r requirements.txt
 python generate_cm.py --output-dir ../generated
 ```
 
-`generated/` にPNG（抽象画）とWAV（合成BGM）が作成されます。FFmpegがインストール済みなら、同じ場所に12秒の縦型MP4も作成されます。
+`generated/` にPNG（抽象画）、WAV（合成BGM）、12秒の縦型MP4が作成されます。MP4は抽象画とBGMを合成し、日付とメッセージは生成ログ・サイト画面で確認できます。
 
 日付を固定すると同じ日の投稿候補を再生成できます。
 

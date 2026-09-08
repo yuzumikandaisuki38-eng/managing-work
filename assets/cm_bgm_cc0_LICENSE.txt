@@ -1,0 +1,9 @@
+cm_bgm_cc0.wav
+
+This audio file was generated for the Tsuiteru CM project and is dedicated to
+the public domain under CC0 1.0 Universal.
+
+You may copy, modify, distribute, and perform this audio file without
+permission or attribution, to the extent allowed by law.
+
+https://creativecommons.org/publicdomain/zero/1.0/

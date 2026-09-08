@@ -72,6 +72,7 @@ MESSAGE_CLOSINGS = (
     "今日も素敵な一日になりますように。",
 )
 DEFAULT_BACKGROUND = Path(__file__).resolve().parent.parent / "assets" / "cm_default_space.jpeg"
+DEFAULT_MUSIC = Path(__file__).resolve().parent.parent / "assets" / "cm_bgm_cc0.wav"
 
 
 def daily_message(day: dt.date) -> str:
@@ -271,7 +272,10 @@ def main() -> None:
     music = args.output_dir / f"{stem}.wav"
     video = args.output_dir / f"{stem}.mp4"
     generate_art(image, seed, (720, 1280), args.background, message)
-    generate_music(music, seed)
+    if DEFAULT_MUSIC.exists():
+        music.write_bytes(DEFAULT_MUSIC.read_bytes())
+    else:
+        generate_music(music, seed)
     generate_video(image, music, video)
     print(f"Generated: {image} and {music}")
     print(f"CM message: {message}")

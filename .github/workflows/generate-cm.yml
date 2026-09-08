@@ -1,24 +1,49 @@
-name: Generate daily CM
+name: Review daily CM assets
 
 on:
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  generate:
+  generate-review-artifacts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install dependencies
         run: pip install -r cm_generator/requirements.txt
-      - name: Generate image, music, and video
+
+      - name: Generate review-ready CM assets
         run: python cm_generator/generate_cm.py --output-dir generated
-      - name: Upload generated CM
+
+      - name: Validate generated files
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = [
+              Path('generated') / f'tsuiteru_{__import__("datetime").date.today().isoformat()}.png',
+              Path('generated') / f'tsuiteru_{__import__("datetime").date.today().isoformat()}.wav',
+          ]
+          missing = [str(p) for p in files if not p.exists() or p.stat().st_size == 0]
+          if missing:
+              raise SystemExit(f'Missing or empty review assets: {missing}')
+          print('Review assets validated. Manual approval is required before any public posting.')
+          PY
+
+      - name: Upload review artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tsuiteru-cm-${{ github.run_number }}
+          name: tsuiteru-cm-review-${{ github.run_number }}
           path: generated/
+          if-no-files-found: error
+
+      - name: Post review-only notice
+        run: echo "This workflow only creates review artifacts and does not publish to social media. Human approval is required before posting."

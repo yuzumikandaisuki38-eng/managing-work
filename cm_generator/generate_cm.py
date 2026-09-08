@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import math
 import shutil
 import subprocess
 import wave
@@ -95,6 +94,28 @@ def generate_video(image: Path, music: Path, output: Path, message: str, categor
     subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
 
+def validate_assets(image: Path, music: Path, video: Path) -> bool:
+    issues = []
+    if not image.exists() or image.stat().st_size <= 0:
+        issues.append(f"Missing or empty image: {image}")
+    if not music.exists() or music.stat().st_size <= 0:
+        issues.append(f"Missing or empty music: {music}")
+    if video.exists() and video.stat().st_size <= 0:
+        issues.append(f"Empty video: {video}")
+
+    if issues:
+        for issue in issues:
+            print(f"[VALIDATION] {issue}")
+        return False
+
+    print("[VALIDATION] PNG and WAV assets are present and non-empty.")
+    if video.exists():
+        print("[VALIDATION] MP4 is present and will be reviewed before publication.")
+    else:
+        print("[VALIDATION] MP4 was not generated because FFmpeg is unavailable; review of PNG/WAV is still required before publishing.")
+    return True
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date", type=dt.date.fromisoformat, default=dt.date.today())
@@ -114,6 +135,10 @@ def main() -> None:
     generate_video(image, music, video, message, category)
     print(f"Generated: {image} and {music}")
     print(f"Daily message ({category}): {message}")
+    valid = validate_assets(image, music, video)
+    print("Review required before any social posting or publication.")
+    if not valid:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

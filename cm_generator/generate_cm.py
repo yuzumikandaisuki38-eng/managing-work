@@ -85,17 +85,27 @@ def daily_message(day: dt.date) -> str:
     return f"{opening}{action}{result}{closing}"
 
 
-def two_line_message(message: str) -> str:
-    """Split the daily message into two balanced Japanese lines."""
-    if len(message) < 2:
+def three_line_message(message: str) -> str:
+    """Split the daily message into three balanced Japanese lines."""
+    if len(message) < 3:
         return message
-    midpoint = len(message) // 2
-    split_points = [
-        index for index, character in enumerate(message)
-        if character in "、。！？" and index >= midpoint - 8
-    ]
-    split_at = min(split_points, key=lambda index: abs(index - midpoint)) + 1 if split_points else midpoint
-    return f"{message[:split_at]}\n{message[split_at:]}"
+
+    def split_at(text: str, target: int) -> int:
+        target = max(1, min(len(text) - 1, target))
+        candidates = [
+            index + 1
+            for index, character in enumerate(text)
+            if character in "、。！？" and 1 <= index + 1 < len(text)
+        ]
+        nearby = [index for index in candidates if abs(index - target) <= 8]
+        return min(nearby or [target], key=lambda index: abs(index - target))
+
+    first_target = len(message) // 3
+    first_end = split_at(message, first_target)
+    remaining = message[first_end:]
+    second_target = len(remaining) // 2
+    second_end = split_at(remaining, second_target)
+    return f"{message[:first_end]}\n{remaining[:second_end]}\n{remaining[second_end:]}"
 
 
 def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -188,7 +198,7 @@ def generate_art(
         fill=(255, 226, 148, 255),
         anchor="mm",
     )
-    message_lines = two_line_message(message or CM_RESERVATION)
+    message_lines = three_line_message(message or CM_RESERVATION)
     draw.multiline_text(
         (width // 2, panel_top + 250),
         message_lines,

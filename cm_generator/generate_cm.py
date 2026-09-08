@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import imageio_ffmpeg
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
 MESSAGES = (
@@ -48,51 +48,47 @@ def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def generate_art(path: Path, seed: int, size: tuple[int, int], category: str, message: str) -> None:
+def generate_art(
+    path: Path,
+    seed: int,
+    size: tuple[int, int],
+    category: str,
+    message: str,
+    background: Path | None = None,
+) -> None:
     rng = np.random.default_rng(seed)
     width, height = size
-    x = np.linspace(-6, 6, width)
-    y = np.linspace(-6, 6, height)
-    X, Y = np.meshgrid(x, y)
-    radius = np.hypot(X, Y)
-    angle = np.arctan2(Y, X)
-    flow = (
-        0.9 * np.sin(X * 1.35 + Y * 2.65 + np.sin(Y * 1.7) * 1.2)
-        + 0.55 * np.cos(X * 2.1 - Y * 0.75 + np.sin(X * 0.9) * 1.4)
-        + 0.35 * np.sin(radius * 1.8 + angle * 1.7)
-        + 0.22 * np.cos(X * 0.55 + Y * 3.4)
-    )
-    milky_way = np.exp(-((Y - 0.48 * np.sin(X * 0.7) - 0.7) ** 2) / 2.3)
-    field = flow + milky_way * 0.45
-    noise = rng.normal(0, 0.08, (height, width))
-    image = field + noise
+    if background is not None:
+        art = ImageOps.fit(Image.open(background).convert("RGB"), (width, height), method=Image.Resampling.LANCZOS).convert("RGBA")
+        art.save(path)
+    else:
+        x = np.linspace(-6, 6, width)
+        y = np.linspace(-6, 6, height)
+        X, Y = np.meshgrid(x, y)
+        radius = np.hypot(X, Y)
+        angle = np.arctan2(Y, X)
+        flow = (
+            0.9 * np.sin(X * 1.35 + Y * 2.65 + np.sin(Y * 1.7) * 1.2)
+            + 0.55 * np.cos(X * 2.1 - Y * 0.75 + np.sin(X * 0.9) * 1.4)
+            + 0.35 * np.sin(radius * 1.8 + angle * 1.7)
+            + 0.22 * np.cos(X * 0.55 + Y * 3.4)
+        )
+        milky_way = np.exp(-((Y - 0.48 * np.sin(X * 0.7) - 0.7) ** 2) / 2.3)
+        field = flow + milky_way * 0.45
+        noise = rng.normal(0, 0.08, (height, width))
+        image = field + noise
 
-    pastel = LinearSegmentedColormap.from_list(
-        "tsuiteru_pastel",
-        [
-            "#f8e8e8",
-            "#f5d6d8",
-            "#d9d1eb",
-            "#c8dff0",
-            "#cce8dc",
-            "#f5e3b8",
-        ],
-    )
-    fig, ax = plt.subplots(figsize=(9, 16), dpi=100)
-    ax.imshow(
-        image,
-        cmap=pastel,
-        origin="lower",
-        interpolation="bicubic",
-        vmin=-2.2,
-        vmax=2.2,
-    )
-    ax.axis("off")
-    fig.subplots_adjust(0, 0, 1, 1)
-    fig.savefig(path, dpi=100, facecolor="#f8eee8")
-    plt.close(fig)
-
-    art = Image.open(path).convert("RGBA")
+        pastel = LinearSegmentedColormap.from_list(
+            "tsuiteru_pastel",
+            ["#f8e8e8", "#f5d6d8", "#d9d1eb", "#c8dff0", "#cce8dc", "#f5e3b8"],
+        )
+        fig, ax = plt.subplots(figsize=(9, 16), dpi=100)
+        ax.imshow(image, cmap=pastel, origin="lower", interpolation="bicubic", vmin=-2.2, vmax=2.2)
+        ax.axis("off")
+        fig.subplots_adjust(0, 0, 1, 1)
+        fig.savefig(path, dpi=100, facecolor="#f8eee8")
+        plt.close(fig)
+        art = Image.open(path).convert("RGBA")
     overlay = Image.new("RGBA", art.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
     width, height = art.size
@@ -205,6 +201,7 @@ def main() -> None:
     parser.add_argument("--date", type=dt.date.fromisoformat, default=dt.date.today())
     parser.add_argument("--output-dir", type=Path, default=Path("generated"))
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--background", type=Path, default=None, help="Use a supplied image as the CM background")
     args = parser.parse_args()
 
     seed = args.seed if args.seed is not None else args.date.toordinal()
@@ -214,7 +211,7 @@ def main() -> None:
     image = args.output_dir / f"{stem}.png"
     music = args.output_dir / f"{stem}.wav"
     video = args.output_dir / f"{stem}.mp4"
-    generate_art(image, seed, (720, 1280), category, message)
+    generate_art(image, seed, (720, 1280), category, message, args.background)
     generate_music(music, seed)
     generate_video(image, music, video, message, category)
     print(f"Generated: {image} and {music}")

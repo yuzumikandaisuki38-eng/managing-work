@@ -4,14 +4,17 @@
 from __future__ import annotations
 
 import datetime as dt
+import base64
 import io
 import json
 import subprocess
 import sys
+import tempfile
 import zipfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
+from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,9 +44,28 @@ class Handler(SimpleHTTPRequestHandler):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Access-Control-Allow-Origin", self.headers.get("Origin", "http://127.0.0.1:8000"))
+        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def do_OPTIONS(self) -> None:
+        if urlparse(self.path).path == "/api/generate":
+            self.send_response(204)
+            self.send_header("Access-Control-Allow-Origin", self.headers.get("Origin", "null"))
+            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+            return
+        self._json(404, {"error": "Not found"})
+
+    def do_GET(self) -> None:
+        if urlparse(self.path).path == "/api/generate":
+            self._json(405, {"error": "Use POST /api/generate"})
+            return
+        super().do_GET()
 
     def _build_bundle(self, stem: str, day: dt.date) -> str:
         bundle_name = f"{stem}.zip"
@@ -69,14 +91,31 @@ class Handler(SimpleHTTPRequestHandler):
         except ValueError:
             self._json(400, {"error": "Invalid Content-Length"})
             return
-        if length > 1024 * 16:
+        if length > 8 * 1024 * 1024:
             self._json(413, {"error": "Request is too large"})
             return
+        background_path = None
         try:
             payload = json.loads(self.rfile.read(length) or b"{}")
             day = dt.date.fromisoformat(str(payload.get("date", "")))
+            image_data = payload.get("background")
+            if image_data:
+                if not isinstance(image_data, str) or not image_data.startswith("data:image/"):
+                    raise ValueError("background must be a PNG, JPEG, or WebP data URL")
+                _, encoded = image_data.split(",", 1)
+                raw_image = base64.b64decode(encoded, validate=True)
+                if len(raw_image) > 6 * 1024 * 1024:
+                    raise ValueError("background image must be 6 MB or smaller")
+                with Image.open(io.BytesIO(raw_image)) as supplied:
+                    if supplied.format not in {"PNG", "JPEG", "WEBP"}:
+                        raise ValueError("background must be PNG, JPEG, or WebP")
+                    supplied.verify()
+                temporary = tempfile.NamedTemporaryFile(prefix="base44-", suffix=".png", dir=OUTPUT_DIR, delete=False)
+                background_path = Path(temporary.name)
+                temporary.write(raw_image)
+                temporary.close()
         except (ValueError, TypeError, json.JSONDecodeError):
-            self._json(400, {"error": "date must be YYYY-MM-DD"})
+            self._json(400, {"error": "日付またはBase44画像が不正です。画像はPNG/JPEG/WebP、6MB以下にしてください。"})
             return
 
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -88,6 +127,8 @@ class Handler(SimpleHTTPRequestHandler):
             "--output-dir",
             str(OUTPUT_DIR),
         ]
+        if background_path is not None:
+            command.extend(["--background", str(background_path)])
         try:
             result = subprocess.run(
                 command,
@@ -104,6 +145,8 @@ class Handler(SimpleHTTPRequestHandler):
         if result.returncode != 0:
             self._json(500, {"error": "Generation failed", "details": result.stderr[-2000:]})
             return
+        if background_path is not None:
+            background_path.unlink(missing_ok=True)
 
         stem = f"tsuiteru_{day.isoformat()}"
         files = [

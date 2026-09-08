@@ -639,6 +639,11 @@
             <label for="cm-date">作成日</label>
             <input id="cm-date" type="date" />
           </div>
+          <div class="cm-date-row">
+            <label for="cm-background">Base44画像</label>
+            <input id="cm-background" type="file" accept="image/png,image/jpeg,image/webp" />
+          </div>
+          <p class="note">Base44から保存したPNG・JPEG・WebP画像を選ぶと、CM背景として使用します（6MB以下）。</p>
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
 python3 cm_generator/generate_cm.py --output-dir generated</pre>
           <button id="copy-cm-command" class="copy-button" type="button">コマンドをコピー</button>
@@ -781,6 +786,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const command = document.querySelector("#cm-command");
         const copyButton = document.querySelector("#copy-cm-command");
         const generateButton = document.querySelector("#generate-cm");
+        const backgroundInput = document.querySelector("#cm-background");
         const status = document.querySelector("#cm-status");
         const files = document.querySelector("#cm-files");
         if (!dateInput || !command || !copyButton || !generateButton || !status || !files) return;
@@ -886,11 +892,31 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           status.className = "cm-status";
           files.replaceChildren();
           try {
-            const response = await fetch("/api/generate", {
+            let background = null;
+            if (backgroundInput.files.length) {
+              const selected = backgroundInput.files[0];
+              if (selected.size > 6 * 1024 * 1024) {
+                throw new Error("Base44画像は6MB以下にしてください。");
+              }
+              background = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error("画像を読み込めませんでした。"));
+                reader.readAsDataURL(selected);
+              });
+            }
+            const apiBase = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+              ? ""
+              : "http://127.0.0.1:8000";
+            const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({date: dateInput.value})
+              body: JSON.stringify({date: dateInput.value, background})
             });
+            const contentType = response.headers.get("content-type") || "";
+            if (!contentType.includes("application/json")) {
+              throw new Error("CM生成APIがJSONを返しませんでした。local_server.pyを起動してください。");
+            }
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "生成に失敗しました。");
             status.textContent = "生成しました。必要なファイルをダウンロードしてから、手動で公開してください。";
@@ -898,7 +924,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
 
             const createLink = (href, label) => {
               const link = document.createElement("a");
-              link.href = href;
+              link.href = `${apiBase}${href}`;
               link.download = label;
               link.textContent = label;
               link.rel = "noopener";
@@ -916,7 +942,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
             }
           } catch (error) {
             status.textContent = error instanceof Error
-              ? `${error.message}。local_server.pyを起動しているか確認してください。`
+              ? error.message
               : "生成に失敗しました。local_server.pyを起動しているか確認してください。";
             status.className = "cm-status error";
           } finally {

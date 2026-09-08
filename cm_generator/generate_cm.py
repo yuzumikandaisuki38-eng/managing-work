@@ -15,6 +15,7 @@ import wave
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import imageio_ffmpeg
 from PIL import Image, ImageDraw, ImageFont
@@ -63,11 +64,29 @@ def generate_art(path: Path, seed: int, size: tuple[int, int], category: str, me
     noise = rng.normal(0, 0.08, (height, width))
     image = flow + noise
 
+    pastel = LinearSegmentedColormap.from_list(
+        "tsuiteru_pastel",
+        [
+            "#f8e8e8",
+            "#f5d6d8",
+            "#d9d1eb",
+            "#c8dff0",
+            "#cce8dc",
+            "#f5e3b8",
+        ],
+    )
     fig, ax = plt.subplots(figsize=(9, 16), dpi=100)
-    ax.imshow(image, cmap="magma", origin="lower", interpolation="bicubic")
+    ax.imshow(
+        image,
+        cmap=pastel,
+        origin="lower",
+        interpolation="bicubic",
+        vmin=-2.2,
+        vmax=2.2,
+    )
     ax.axis("off")
     fig.subplots_adjust(0, 0, 1, 1)
-    fig.savefig(path, dpi=100, facecolor="#120b2e")
+    fig.savefig(path, dpi=100, facecolor="#f8eee8")
     plt.close(fig)
 
     art = Image.open(path).convert("RGBA")

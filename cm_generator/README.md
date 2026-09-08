@@ -27,6 +27,19 @@ python generate_cm.py --output-dir ../generated
 python generate_cm.py --date 2026-12-01 --output-dir ../generated
 ```
 
+## ブラウザから生成
+
+ローカル環境でページを開き、「CMを作る」欄の「この日付のCMを生成」ボタンを使えます。
+
+```bash
+cd /Users/hidemitogo/.copilot/repos/managing-work
+python3 cm_generator/local_server.py
+```
+
+その後、`http://127.0.0.1:8000/#cm-maker` を開いてください。このサーバーは
+`127.0.0.1` からのみ接続でき、SNSへの投稿機能は持ちません。生成後は必ず人が
+画像・音声・文面を確認してから手動で公開してください。
+
 ## 告知文の例
 
 > ツイテル鑑定所｜12月オープン予定。オープン前から個人鑑定を承っています。金運・健康運を中心に、毎日のメッセージをお届けします。

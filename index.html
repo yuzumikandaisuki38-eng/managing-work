@@ -282,6 +282,29 @@
       font:inherit;
       cursor:pointer;
     }
+    .generate-button{
+      width:100%;
+      margin-top:14px;
+    }
+    .cm-status{
+      min-height:1.8em;
+      margin:14px 0 0;
+      color:var(--muted);
+      line-height:1.8;
+      font-size:0.9rem;
+    }
+    .cm-status.success{color:#cce7bb}
+    .cm-status.error{color:#ffb9b9}
+    .cm-files{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:8px;
+    }
+    .cm-files a{
+      color:var(--gold-soft);
+      font-size:0.86rem;
+    }
     footer{
       padding:36px 0 20px;
       text-align:center;
@@ -397,6 +420,9 @@
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
 python3 cm_generator/generate_cm.py --output-dir generated</pre>
           <button id="copy-cm-command" class="copy-button" type="button">コマンドをコピー</button>
+          <button id="generate-cm" class="submit generate-button" type="button">この日付のCMを生成</button>
+          <p id="cm-status" class="cm-status" role="status" aria-live="polite"></p>
+          <div id="cm-files" class="cm-files"></div>
           <p class="safe-note">
             このページからSNSへ自動投稿することはありません。画像・音声・文面を人が確認してから手動で公開してください。
           </p>
@@ -460,7 +486,10 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const dateInput = document.querySelector("#cm-date");
         const command = document.querySelector("#cm-command");
         const copyButton = document.querySelector("#copy-cm-command");
-        if (!dateInput || !command || !copyButton) return;
+        const generateButton = document.querySelector("#generate-cm");
+        const status = document.querySelector("#cm-status");
+        const files = document.querySelector("#cm-files");
+        if (!dateInput || !command || !copyButton || !generateButton || !status || !files) return;
 
         const today = new Date();
         const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
@@ -477,10 +506,48 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         };
         dateInput.addEventListener("change", updateCommand);
         copyButton.addEventListener("click", async () => {
-          await navigator.clipboard.writeText(command.textContent);
+          try {
+            await navigator.clipboard.writeText(command.textContent);
+          } catch {
+            status.textContent = "コピーできませんでした。コマンドを手動でコピーしてください。";
+            status.className = "cm-status error";
+            return;
+          }
           const original = copyButton.textContent;
           copyButton.textContent = "コピーしました";
           window.setTimeout(() => { copyButton.textContent = original; }, 1600);
+        });
+        generateButton.addEventListener("click", async () => {
+          generateButton.disabled = true;
+          status.textContent = "生成中です。しばらくお待ちください。";
+          status.className = "cm-status";
+          files.replaceChildren();
+          try {
+            const response = await fetch("/api/generate", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({date: dateInput.value})
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "生成に失敗しました。");
+            status.textContent = "生成しました。公開前に画像・音声・文面を確認してください。";
+            status.className = "cm-status success";
+            result.files.forEach((file) => {
+              const link = document.createElement("a");
+              link.href = file;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.textContent = file.split("/").pop();
+              files.append(link);
+            });
+          } catch (error) {
+            status.textContent = error instanceof Error
+              ? `${error.message}。local_server.pyを起動しているか確認してください。`
+              : "生成に失敗しました。local_server.pyを起動しているか確認してください。";
+            status.className = "cm-status error";
+          } finally {
+            generateButton.disabled = false;
+          }
         });
       })();
     </script>

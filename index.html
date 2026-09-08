@@ -658,17 +658,8 @@
               <option value="cm_garden.jpeg">庭園と川</option>
             </select>
           </div>
-          <div class="cm-date-row">
-            <label for="cm-api-url">生成サーバーURL（携帯）</label>
-            <input id="cm-api-url" type="url" placeholder="例: http://192.168.1.10:8000" />
-            <button id="check-cm-server" class="copy-button" type="button">接続確認</button>
-          </div>
           <p class="note">添付された7種類の画像から背景を選べます。画像はリポジトリ内で管理し、外部URLは使用しません。</p>
-          <p class="note">
-            携帯から生成する場合は、パソコンと携帯を同じWi-Fiに接続し、パソコンでサーバーを起動します。
-            その後、携帯では必ず <code>http://パソコンのIP:8000/#cm-maker</code> を開いてください。
-            GitHub PagesではなくPCから配信された画面を使うことで、API接続先が自動的に決まります。
-          </p>
+          <p class="note">このCM生成機能はPC上で実行します。SNSへの自動投稿は行いません。</p>
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
 python3 cm_generator/generate_cm.py --output-dir generated</pre>
           <button id="copy-cm-command" class="copy-button" type="button">コマンドをコピー</button>
@@ -811,8 +802,6 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const copyButton = document.querySelector("#copy-cm-command");
         const generateButton = document.querySelector("#generate-cm");
         const backgroundInput = document.querySelector("#cm-background");
-        const apiUrlInput = document.querySelector("#cm-api-url");
-        const checkServerButton = document.querySelector("#check-cm-server");
         const previewBackground = document.querySelector("#preview-background");
         const status = document.querySelector("#cm-status");
         const files = document.querySelector("#cm-files");
@@ -823,40 +812,6 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           previewBackground.classList.add("loaded");
         };
         backgroundInput.addEventListener("change", showBackgroundPreview);
-        const getApiBase = () => {
-          const configuredApi = apiUrlInput.value.trim().replace(/\/+$/, "");
-          if (configuredApi) return configuredApi;
-          if (window.location.port === "8000" && window.location.protocol === "http:") {
-            return window.location.origin;
-          }
-          return "";
-        };
-        if (checkServerButton) {
-          checkServerButton.addEventListener("click", async () => {
-            const apiBase = getApiBase();
-            if (!apiBase) {
-              status.textContent = "PCサーバーのURLを入力するか、PCの8000番ページを開いてください。";
-              status.className = "cm-status error";
-              return;
-            }
-            checkServerButton.disabled = true;
-            status.textContent = "接続を確認しています。";
-            status.className = "cm-status";
-            try {
-              const response = await fetch(`${apiBase}/api/health`, {headers: {"Accept": "application/json"}});
-              const result = await response.json();
-              if (!response.ok || result.ok !== true) throw new Error("応答が不正です。");
-              status.textContent = "PCのCM生成サーバーに接続しました。";
-              status.className = "cm-status success";
-            } catch {
-              status.textContent = "接続できません。PCと携帯のWi-Fi、IPアドレス、サーバー起動を確認してください。";
-              status.className = "cm-status error";
-            } finally {
-              checkServerButton.disabled = false;
-            }
-          });
-        }
-
         const shareText = "12月オープン予定｜ツイテル鑑定所。オープン前から個人鑑定を承っています。 #ツイテル鑑定所 #12月オープン #個人鑑定";
         const shareX = document.querySelector("#share-x");
         const shareLine = document.querySelector("#share-line");
@@ -950,10 +905,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           status.className = "cm-status";
           files.replaceChildren();
           try {
-            const apiBase = getApiBase();
-            if (!apiBase) {
-              throw new Error("PCのCM生成サーバーURLを設定してください。");
-            }
+            const apiBase = window.location.origin;
             const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},

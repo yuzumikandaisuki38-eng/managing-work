@@ -150,7 +150,7 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Run the local CM generation server.")
-    parser.add_argument("--host", default="127.0.0.1", help="Bind address; use 0.0.0.0 for same-Wi-Fi phone access")
+    parser.add_argument("--host", default="127.0.0.1", help="Bind address for this PC")
     parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
     print(f"Serving {ROOT} at http://{args.host}:{args.port}")

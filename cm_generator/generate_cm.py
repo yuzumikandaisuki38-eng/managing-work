@@ -62,8 +62,10 @@ def generate_art(path: Path, seed: int, size: tuple[int, int], category: str, me
         + 0.35 * np.sin(radius * 1.8 + angle * 1.7)
         + 0.22 * np.cos(X * 0.55 + Y * 3.4)
     )
+    milky_way = np.exp(-((Y - 0.48 * np.sin(X * 0.7) - 0.7) ** 2) / 2.3)
+    field = flow + milky_way * 0.45
     noise = rng.normal(0, 0.08, (height, width))
-    image = flow + noise
+    image = field + noise
 
     pastel = LinearSegmentedColormap.from_list(
         "tsuiteru_pastel",
@@ -123,6 +125,27 @@ def generate_art(path: Path, seed: int, size: tuple[int, int], category: str, me
     draw.text((width // 2, height - 82), "12月オープン予定｜個人鑑定受付中", font=small_font,
               fill=(225, 211, 235, 255), anchor="mm")
     Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)
+
+    # Add a deterministic star field after the soft background is rendered.
+    art = Image.open(path).convert("RGBA")
+    stars = Image.new("RGBA", art.size, (0, 0, 0, 0))
+    star_draw = ImageDraw.Draw(stars)
+    star_rng = np.random.default_rng(seed + 17)
+    star_count = 170
+    for _ in range(star_count):
+        sx = int(star_rng.uniform(35, width - 35))
+        sy = int(star_rng.uniform(180, height - 390))
+        band = np.exp(-((sy / height - 0.48) ** 2) / 0.08)
+        if star_rng.random() > 0.25 + band * 0.6:
+            continue
+        radius = float(star_rng.choice([1.0, 1.2, 1.6, 2.2, 3.0], p=[.32, .28, .2, .14, .06]))
+        alpha = int(star_rng.uniform(110, 235))
+        color = (255, 250, 224, alpha) if star_rng.random() > 0.18 else (225, 235, 255, alpha)
+        star_draw.ellipse((sx - radius, sy - radius, sx + radius, sy + radius), fill=color)
+        if radius >= 2.2:
+            star_draw.line((sx - radius * 2.5, sy, sx + radius * 2.5, sy), fill=color, width=1)
+            star_draw.line((sx, sy - radius * 2.5, sx, sy + radius * 2.5), fill=color, width=1)
+    Image.alpha_composite(art, stars).convert("RGB").save(path, quality=95)
 
 
 def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 44100) -> None:

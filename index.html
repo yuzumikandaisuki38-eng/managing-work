@@ -803,17 +803,23 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         let previewTimer;
         let audioContext;
         let audioTimer;
+        let previewEndTimer;
         if (previewButton && previewStatus && previewScenes.length) {
           previewButton.addEventListener("click", async () => {
             window.clearInterval(previewTimer);
             window.clearInterval(audioTimer);
+            window.clearTimeout(previewEndTimer);
             previewScenes.forEach((scene) => scene.classList.remove("active"));
             let sceneIndex = 0;
             previewScenes[sceneIndex].classList.add("active");
             previewButton.disabled = true;
             previewStatus.textContent = "再生中です。音量をご確認ください。";
             try {
-              audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+              const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+              if (!AudioContextConstructor) {
+                throw new Error("Web Audio API is unavailable");
+              }
+              audioContext = audioContext || new AudioContextConstructor();
               await audioContext.resume();
               const notes = [261.63, 293.66, 329.63, 392, 440, 523.25];
               let noteIndex = 0;
@@ -837,7 +843,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
                 sceneIndex = (sceneIndex + 1) % previewScenes.length;
                 previewScenes[sceneIndex].classList.add("active");
               }, 3750);
-              window.setTimeout(() => {
+              previewEndTimer = window.setTimeout(() => {
                 window.clearInterval(previewTimer);
                 window.clearInterval(audioTimer);
                 previewButton.disabled = false;

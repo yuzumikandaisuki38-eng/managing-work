@@ -23,7 +23,20 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 CM_SUBTITLE = "心と運気に寄り添う個人鑑定"
 CM_BODY = "12月オープン予定｜個人鑑定受付中"
+DAILY_MESSAGES = (
+    "今日はどんな素敵な出会いが待っているでしょう？",
+    "小さな一歩が、明日のワクワクを連れてきます。",
+    "心がときめく方へ。新しい発見が始まります。",
+    "あなたらしい笑顔が、幸運の扉をそっと開きます。",
+    "いつもの景色に、うれしい変化を見つけましょう。",
+    "楽しむ気持ちを大切に。今日は輝くチャンスの日です。",
+    "未来のあなたから、素敵な知らせが届くかもしれません。",
+)
 DEFAULT_BACKGROUND = Path(__file__).resolve().parent.parent / "assets" / "cm_default_space.jpeg"
+
+
+def daily_message(day: dt.date) -> str:
+    return DAILY_MESSAGES[day.toordinal() % len(DAILY_MESSAGES)]
 
 
 def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -46,6 +59,7 @@ def generate_art(
     seed: int,
     size: tuple[int, int],
     background: Path | None = None,
+    message: str = "",
 ) -> None:
     rng = np.random.default_rng(seed)
     width, height = size
@@ -111,7 +125,7 @@ def generate_art(
     )
     draw.text((width // 2, panel_top + 58), CM_SUBTITLE, font=category_font,
               fill=(255, 226, 148, 255), anchor="mm")
-    draw.text((width // 2, panel_top + 125), CM_BODY, font=body_font,
+    draw.text((width // 2, panel_top + 125), message or CM_BODY, font=body_font,
               fill=(255, 255, 255, 255), anchor="mm", align="center",
               spacing=10)
     draw.text((width // 2, height - 82), "12月オープン予定｜個人鑑定受付中", font=small_font,
@@ -207,16 +221,17 @@ def main() -> None:
     args = parser.parse_args()
 
     seed = args.seed if args.seed is not None else args.date.toordinal()
+    message = daily_message(args.date)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     stem = f"tsuiteru_{args.date.isoformat()}"
     image = args.output_dir / f"{stem}.png"
     music = args.output_dir / f"{stem}.wav"
     video = args.output_dir / f"{stem}.mp4"
-    generate_art(image, seed, (720, 1280), args.background)
+    generate_art(image, seed, (720, 1280), args.background, message)
     generate_music(music, seed)
     generate_video(image, music, video)
     print(f"Generated: {image} and {music}")
-    print("CM content: ツイテル鑑定所 / 12月オープン予定 / 個人鑑定受付中")
+    print(f"CM message: {message}")
     valid = validate_assets(image, music, video)
     print("Review required before any social posting or publication.")
     if not valid:

@@ -654,7 +654,16 @@
             <label for="cm-background">Base44画像</label>
             <input id="cm-background" type="file" accept="image/png,image/jpeg,image/webp" />
           </div>
-          <p class="note">Base44から保存したPNG・JPEG・WebP画像を選ぶと、CM背景として使用します（6MB以下）。</p>
+          <p class="note">
+            <a class="btn secondary" href="https://lucky-title-maker.base44.app/" target="_blank" rel="noopener noreferrer">
+              Base44アプリで画像を作る
+            </a>
+          </p>
+          <p class="note">
+            Base44アプリで画像を保存してから、上のファイル欄で選択してください。
+            PNG・JPEG・WebP、6MB以下に対応しています。アプリのページURL自体は画像ではないため、
+            URLを貼り付けるのではなく、保存した画像ファイルを使用します。
+          </p>
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
 python3 cm_generator/generate_cm.py --output-dir generated</pre>
           <button id="copy-cm-command" class="copy-button" type="button">コマンドをコピー</button>

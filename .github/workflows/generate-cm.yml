@@ -1,0 +1,24 @@
+name: Generate daily CM
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r cm_generator/requirements.txt
+      - name: Generate image, music, and video
+        run: python cm_generator/generate_cm.py --output-dir generated
+      - name: Upload generated CM
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsuiteru-cm-${{ github.run_number }}
+          path: generated/

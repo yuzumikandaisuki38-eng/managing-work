@@ -305,6 +305,37 @@
       color:var(--gold-soft);
       font-size:0.86rem;
     }
+    .social-links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:18px;
+    }
+    .social-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:44px;
+      padding:0 18px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,0.04);
+      color:var(--text);
+      text-decoration:none;
+      font:inherit;
+      cursor:pointer;
+    }
+    .social-button:hover,
+    .social-button:focus-visible{
+      border-color:var(--gold);
+      color:var(--gold-soft);
+    }
+    .share-note{
+      margin:12px 0 0;
+      color:var(--muted);
+      font-size:0.84rem;
+      line-height:1.8;
+    }
     footer{
       padding:36px 0 20px;
       text-align:center;
@@ -477,8 +508,29 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
       </div>
     </section>
 
+    <section id="social" class="section">
+      <h2>SNSで共有</h2>
+      <p class="lead">
+        投稿文を確認したあと、各SNSの投稿画面を開いて手動で公開できます。
+        このボタンから自動投稿は行いません。
+      </p>
+      <div class="panel">
+        <div class="social-links">
+          <a class="social-button" id="share-x" href="https://twitter.com/intent/tweet" target="_blank" rel="noopener noreferrer">Xで投稿画面を開く</a>
+          <a class="social-button" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagramを開く</a>
+          <a class="social-button" id="share-line" href="https://line.me/R/msg/text/" target="_blank" rel="noopener noreferrer">LINEで共有</a>
+        </div>
+        <p class="share-note">
+          Instagramは投稿画面への移動のみです。画像・動画を確認してから、各SNSで手動投稿してください。
+        </p>
+      </div>
+    </section>
+
     <footer>
-      ツイテル鑑定所 © 2026
+      <nav aria-label="フッターナビゲーション">
+        <a href="#social">SNSで共有</a>
+      </nav>
+      <p>ツイテル鑑定所 © 2026</p>
     </footer>
   </div>
     <script>
@@ -496,6 +548,16 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           .toISOString()
           .slice(0, 10);
         dateInput.value = localDate;
+
+        const shareText = "12月オープン予定｜オープン前から個人鑑定受付中。金運・健康運を中心に、日々の気分と暮らしに寄り添うメッセージをお届けしています。 #ツイテル鑑定所 #占い #金運 #健康運";
+        const shareX = document.querySelector("#share-x");
+        const shareLine = document.querySelector("#share-line");
+        if (shareX) {
+          shareX.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+        }
+        if (shareLine) {
+          shareLine.href = `https://line.me/R/msg/text/?${encodeURIComponent(shareText)}`;
+        }
 
         const updateCommand = () => {
           const date = dateInput.value;

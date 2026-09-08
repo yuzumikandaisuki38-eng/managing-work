@@ -57,9 +57,10 @@ def generate_art(path: Path, seed: int, size: tuple[int, int], category: str, me
     radius = np.hypot(X, Y)
     angle = np.arctan2(Y, X)
     flow = (
-        np.sin(radius * 2.3 + np.sin(angle * 5) * 1.8)
-        + 0.55 * np.cos(X * Y * 0.8)
-        + 0.35 * np.sin(X * 1.7 - Y * 2.2)
+        0.9 * np.sin(X * 1.35 + Y * 2.65 + np.sin(Y * 1.7) * 1.2)
+        + 0.55 * np.cos(X * 2.1 - Y * 0.75 + np.sin(X * 0.9) * 1.4)
+        + 0.35 * np.sin(radius * 1.8 + angle * 1.7)
+        + 0.22 * np.cos(X * 0.55 + Y * 3.4)
     )
     noise = rng.normal(0, 0.08, (height, width))
     image = flow + noise

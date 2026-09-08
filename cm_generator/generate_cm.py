@@ -17,6 +17,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import imageio_ffmpeg
+from PIL import Image, ImageDraw, ImageFont
 
 
 MESSAGES = (
@@ -31,7 +32,22 @@ def daily_message(day: dt.date) -> tuple[str, str]:
     return MESSAGES[day.toordinal() % len(MESSAGES)]
 
 
-def generate_art(path: Path, seed: int, size: tuple[int, int]) -> None:
+def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    candidates = (
+        "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+        "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
+        "/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJKjp-Regular.otf",
+    )
+    for candidate in candidates:
+        if Path(candidate).exists():
+            return ImageFont.truetype(candidate, size)
+    print("[WARNING] Japanese font not found; text may not render correctly.")
+    return ImageFont.load_default()
+
+
+def generate_art(path: Path, seed: int, size: tuple[int, int], category: str, message: str) -> None:
     rng = np.random.default_rng(seed)
     width, height = size
     x = np.linspace(-6, 6, width)
@@ -53,6 +69,40 @@ def generate_art(path: Path, seed: int, size: tuple[int, int]) -> None:
     fig.subplots_adjust(0, 0, 1, 1)
     fig.savefig(path, dpi=100, facecolor="#120b2e")
     plt.close(fig)
+
+    art = Image.open(path).convert("RGBA")
+    overlay = Image.new("RGBA", art.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    width, height = art.size
+    title_font = japanese_font(54)
+    category_font = japanese_font(38)
+    body_font = japanese_font(27)
+    small_font = japanese_font(24)
+    draw.rounded_rectangle(
+        (42, 48, width - 42, 170),
+        radius=28,
+        fill=(12, 7, 30, 170),
+        outline=(242, 228, 183, 190),
+        width=2,
+    )
+    draw.text((width // 2, 108), "ツイテル鑑定所", font=title_font,
+              fill=(242, 228, 183, 255), anchor="mm")
+    panel_top = height - 360
+    draw.rounded_rectangle(
+        (42, panel_top, width - 42, height - 48),
+        radius=28,
+        fill=(12, 7, 30, 195),
+        outline=(242, 228, 183, 180),
+        width=2,
+    )
+    draw.text((width // 2, panel_top + 58), category, font=category_font,
+              fill=(255, 226, 148, 255), anchor="mm")
+    draw.text((width // 2, panel_top + 125), message, font=body_font,
+              fill=(255, 255, 255, 255), anchor="mm", align="center",
+              spacing=10)
+    draw.text((width // 2, height - 82), "毎日の運気メッセージ", font=small_font,
+              fill=(225, 211, 235, 255), anchor="mm")
+    Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)
 
 
 def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 44100) -> None:
@@ -121,7 +171,7 @@ def main() -> None:
     image = args.output_dir / f"{stem}.png"
     music = args.output_dir / f"{stem}.wav"
     video = args.output_dir / f"{stem}.mp4"
-    generate_art(image, seed, (720, 1280))
+    generate_art(image, seed, (720, 1280), category, message)
     generate_music(music, seed)
     generate_video(image, music, video, message, category)
     print(f"Generated: {image} and {music}")

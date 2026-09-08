@@ -353,6 +353,102 @@
       font-size:0.84rem;
       line-height:1.8;
     }
+    .preview-layout{
+      display:grid;
+      grid-template-columns:minmax(260px,360px) 1fr;
+      gap:28px;
+      align-items:center;
+      margin-top:26px;
+    }
+    .cm-preview{
+      width:100%;
+      aspect-ratio:9 / 16;
+      position:relative;
+      overflow:hidden;
+      border:8px solid #fff;
+      border-radius:24px;
+      background:#fbf7f0;
+      box-shadow:0 18px 45px rgba(0,0,0,.22);
+    }
+    .preview-gradient{
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 30% 20%, #fff5eb 0, transparent 60%),
+        radial-gradient(circle at 70% 80%, #e6f0fa 0, transparent 60%);
+    }
+    .preview-scene{
+      position:absolute;
+      inset:0;
+      z-index:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:space-between;
+      padding:40px 20px;
+      opacity:0;
+      transition:opacity .8s ease;
+      color:#665c54;
+    }
+    .preview-scene.active{opacity:1}
+    .preview-illustration{
+      width:42%;
+      aspect-ratio:1;
+      display:grid;
+      place-items:center;
+      margin-top:30px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#ffeedd,#e3edff);
+      box-shadow:0 8px 20px rgba(232,211,188,.4);
+      font-size:clamp(2.4rem,8vw,4rem);
+      animation:preview-float 4s ease-in-out infinite;
+    }
+    @keyframes preview-float{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-10px)}
+    }
+    .preview-message{
+      width:90%;
+      padding:18px;
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:16px;
+      background:rgba(255,255,255,.6);
+      backdrop-filter:blur(4px);
+    }
+    .preview-message strong{
+      display:block;
+      margin-bottom:8px;
+      color:#7c6f64;
+      font-size:1.05rem;
+    }
+    .preview-message span{
+      display:block;
+      font-size:.85rem;
+      line-height:1.7;
+    }
+    .preview-logo{
+      margin-bottom:50px;
+      color:#7c6f64;
+      font-size:1.35rem;
+      font-weight:700;
+      text-align:center;
+    }
+    .preview-logo small{
+      display:block;
+      margin-top:5px;
+      color:#928374;
+      font-size:.72rem;
+      letter-spacing:.1em;
+    }
+    .preview-copy p{
+      color:var(--muted);
+      line-height:1.9;
+    }
+    .preview-status{
+      min-height:1.8em;
+      color:var(--muted);
+      font-size:.9rem;
+    }
     .form-status{
       min-height:1.8em;
       margin:0;
@@ -377,6 +473,13 @@
     @media (max-width: 860px){
       .hero, .grid, .contact, .form{
         grid-template-columns:1fr;
+      }
+      .preview-layout{
+        grid-template-columns:1fr;
+        justify-items:center;
+      }
+      .cm-preview{
+        max-width:360px;
       }
       .cm-tools{
         grid-template-columns:1fr;
@@ -460,6 +563,51 @@
         <div class="card">
           <h3>個人鑑定</h3>
           <p>オープン前から、静かな時間を大切にしたい方のためのご相談を承っています。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="preview" class="section">
+      <h2>CMプレビュー</h2>
+      <div class="preview-layout">
+        <div class="cm-preview" aria-label="ツイテル鑑定所CMプレビュー">
+          <div class="preview-gradient"></div>
+          <div class="preview-scene active" data-preview-scene>
+            <div class="preview-illustration">✨</div>
+            <div class="preview-message">
+              <strong>今日、いいことあるかな？</strong>
+              <span>あなたの1日をそっと応援する、優しい星のメッセージ。</span>
+            </div>
+            <div></div>
+          </div>
+          <div class="preview-scene" data-preview-scene>
+            <div class="preview-illustration">🔮</div>
+            <div class="preview-message">
+              <strong>毎日の占いを優しい動画に</strong>
+              <span>金運・健康運を中心に、毎日のメッセージをお届けします。</span>
+            </div>
+            <div></div>
+          </div>
+          <div class="preview-scene" data-preview-scene>
+            <div class="preview-illustration">🎵</div>
+            <div class="preview-message">
+              <strong>オリジナルBGM付き</strong>
+              <span>抽象画と音楽で、静かな時間を彩るCMを作成できます。</span>
+            </div>
+            <div></div>
+          </div>
+          <div class="preview-scene" data-preview-scene>
+            <div></div>
+            <div class="preview-logo">ツイテル鑑定所<small>毎日占いCM</small></div>
+            <div class="preview-message"><strong style="text-align:center">毎日に、小さなワクワクを。</strong></div>
+          </div>
+        </div>
+        <div class="panel preview-copy">
+          <h3>公開前にイメージを確認</h3>
+          <p>「CMを再生する」を押すと、4つのシーンが切り替わり、ブラウザ内でオリジナルの音色を再生します。</p>
+          <button id="play-preview" class="submit" type="button">CMを再生する</button>
+          <p id="preview-status" class="preview-status" role="status" aria-live="polite"></p>
+          <p class="safe-note">これはプレビューです。公開用のPNG/WAV/MP4は「CMを作る」から生成し、内容を確認してから手動で投稿してください。</p>
         </div>
       </div>
     </section>
@@ -647,6 +795,59 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         }
         if (shareLine) {
           shareLine.href = `https://line.me/R/msg/text/?${encodeURIComponent(shareText)}`;
+        }
+
+        const previewButton = document.querySelector("#play-preview");
+        const previewStatus = document.querySelector("#preview-status");
+        const previewScenes = [...document.querySelectorAll("[data-preview-scene]")];
+        let previewTimer;
+        let audioContext;
+        let audioTimer;
+        if (previewButton && previewStatus && previewScenes.length) {
+          previewButton.addEventListener("click", async () => {
+            window.clearInterval(previewTimer);
+            window.clearInterval(audioTimer);
+            previewScenes.forEach((scene) => scene.classList.remove("active"));
+            let sceneIndex = 0;
+            previewScenes[sceneIndex].classList.add("active");
+            previewButton.disabled = true;
+            previewStatus.textContent = "再生中です。音量をご確認ください。";
+            try {
+              audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+              await audioContext.resume();
+              const notes = [261.63, 293.66, 329.63, 392, 440, 523.25];
+              let noteIndex = 0;
+              const playNote = () => {
+                const oscillator = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.value = notes[noteIndex % notes.length];
+                gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.9);
+                oscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.9);
+                noteIndex += 1;
+              };
+              playNote();
+              audioTimer = window.setInterval(playNote, 500);
+              previewTimer = window.setInterval(() => {
+                previewScenes[sceneIndex].classList.remove("active");
+                sceneIndex = (sceneIndex + 1) % previewScenes.length;
+                previewScenes[sceneIndex].classList.add("active");
+              }, 3750);
+              window.setTimeout(() => {
+                window.clearInterval(previewTimer);
+                window.clearInterval(audioTimer);
+                previewButton.disabled = false;
+                previewStatus.textContent = "再生が完了しました。";
+              }, previewScenes.length * 3750);
+            } catch {
+              previewButton.disabled = false;
+              previewStatus.textContent = "音声を再生できませんでした。ブラウザの音声設定をご確認ください。";
+            }
+          });
         }
 
         const updateCommand = () => {

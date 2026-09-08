@@ -62,6 +62,9 @@ class Handler(SimpleHTTPRequestHandler):
         self._json(404, {"error": "Not found"})
 
     def do_GET(self) -> None:
+        if urlparse(self.path).path == "/api/health":
+            self._json(200, {"ok": True, "service": "tsuiteru-cm-generator"})
+            return
         if urlparse(self.path).path == "/api/generate":
             self._json(405, {"error": "Use POST /api/generate"})
             return
@@ -97,7 +100,7 @@ class Handler(SimpleHTTPRequestHandler):
         background_path = None
         try:
             payload = json.loads(self.rfile.read(length) or b"{}")
-            day = dt.date.fromisoformat(str(payload.get("date", "")))
+            day = dt.date.fromisoformat(str(payload.get("date") or dt.date.today()))
             image_data = payload.get("background")
             if image_data:
                 if not isinstance(image_data, str) or not image_data.startswith("data:image/"):
@@ -115,7 +118,7 @@ class Handler(SimpleHTTPRequestHandler):
                 temporary.write(raw_image)
                 temporary.close()
         except (ValueError, TypeError, json.JSONDecodeError):
-            self._json(400, {"error": "日付またはBase44画像が不正です。画像はPNG/JPEG/WebP、6MB以下にしてください。"})
+            self._json(400, {"error": "Base44画像が不正です。画像はPNG/JPEG/WebP、6MB以下にしてください。"})
             return
 
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

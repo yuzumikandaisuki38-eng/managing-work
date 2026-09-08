@@ -597,8 +597,8 @@
           <div class="preview-scene" data-preview-scene>
             <div class="preview-illustration">🔮</div>
             <div class="preview-message">
-              <strong>毎日の占いを優しい動画に</strong>
-              <span>金運・健康運を中心に、毎日のメッセージをお届けします。</span>
+              <strong>鑑定所の案内を優しい動画に</strong>
+              <span>心と運気に寄り添う個人鑑定のご案内をお届けします。</span>
             </div>
             <div></div>
           </div>
@@ -612,7 +612,7 @@
           </div>
           <div class="preview-scene" data-preview-scene>
             <div></div>
-            <div class="preview-logo">ツイテル鑑定所<small>毎日占いCM</small></div>
+            <div class="preview-logo">ツイテル鑑定所<small>個人鑑定CM</small></div>
             <div class="preview-message"><strong style="text-align:center">12月オープン予定<br>個人鑑定受付中</strong></div>
           </div>
         </div>
@@ -629,7 +629,7 @@
     <section id="cm-maker" class="section">
       <h2>CMを作る</h2>
       <p class="lead">
-        抽象画・オリジナルBGM・毎日の金運/健康運メッセージを生成できます。
+        Base44画像または抽象画・オリジナルBGM・鑑定所の案内を組み合わせたCMを生成できます。
         作成後は必ず内容を確認してから、手動で公開してください。
       </p>
       <div class="cm-tools">
@@ -645,11 +645,7 @@
         </div>
         <div class="panel">
           <h3>ターミナルから作成</h3>
-          <p class="note">作成する日付を選び、表示されたコマンドをプロジェクト内のターミナルで実行します。</p>
-          <div class="cm-date-row">
-            <label for="cm-date">作成日</label>
-            <input id="cm-date" type="date" />
-          </div>
+          <p class="note">毎日の占いは使用せず、鑑定所の案内だけをCMとして生成します。</p>
           <div class="cm-date-row">
             <label for="cm-background">Base44画像</label>
             <input id="cm-background" type="file" accept="image/png,image/jpeg,image/webp" />
@@ -661,6 +657,7 @@
           <div class="cm-date-row">
             <label for="cm-api-url">生成サーバーURL（携帯）</label>
             <input id="cm-api-url" type="url" placeholder="例: http://192.168.1.10:8000" />
+            <button id="check-cm-server" class="copy-button" type="button">接続確認</button>
           </div>
           <p class="note">
             <a class="btn secondary" href="https://lucky-title-maker.base44.app/" target="_blank" rel="noopener noreferrer">
@@ -673,14 +670,14 @@
             アプリURLではなく、画像を保存したURLを指定してください。
           </p>
           <p class="note">
-            携帯から生成する場合は、パソコンと携帯を同じWi-Fiに接続し、パソコンで
-            <code>python3 cm_generator/local_server.py --host 0.0.0.0</code>を実行してください。
-            パソコンのIPアドレス（例: <code>192.168.1.10</code>）を「生成サーバーURL」に入力します。
+            携帯から生成する場合は、パソコンと携帯を同じWi-Fiに接続し、パソコンでサーバーを起動します。
+            その後、携帯では必ず <code>http://パソコンのIP:8000/#cm-maker</code> を開いてください。
+            GitHub PagesではなくPCから配信された画面を使うことで、API接続先が自動的に決まります。
           </p>
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
 python3 cm_generator/generate_cm.py --output-dir generated</pre>
           <button id="copy-cm-command" class="copy-button" type="button">コマンドをコピー</button>
-          <button id="generate-cm" class="submit generate-button" type="button">この日付のCMを生成</button>
+          <button id="generate-cm" class="submit generate-button" type="button">CMを生成</button>
           <p id="cm-status" class="cm-status" role="status" aria-live="polite"></p>
           <div class="safe-note">公開用CMファイルをブラウザからそのままダウンロードできます。ファイルを確認してから、各SNSで手動投稿してください。</div>
           <div id="cm-files" class="cm-files"></div>
@@ -815,28 +812,55 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           });
         }
 
-        const dateInput = document.querySelector("#cm-date");
         const command = document.querySelector("#cm-command");
         const copyButton = document.querySelector("#copy-cm-command");
         const generateButton = document.querySelector("#generate-cm");
         const backgroundInput = document.querySelector("#cm-background");
         const backgroundUrlInput = document.querySelector("#cm-background-url");
         const apiUrlInput = document.querySelector("#cm-api-url");
+        const checkServerButton = document.querySelector("#check-cm-server");
         const previewBackground = document.querySelector("#preview-background");
         const status = document.querySelector("#cm-status");
         const files = document.querySelector("#cm-files");
-        if (!dateInput || !command || !copyButton || !generateButton || !status || !files) return;
-
-        const today = new Date();
-        const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
-          .toISOString()
-          .slice(0, 10);
-        dateInput.value = localDate;
+        if (!command || !copyButton || !generateButton || !status || !files) return;
 
         const showBackgroundPreview = (dataUrl) => {
           previewBackground.src = dataUrl;
           previewBackground.classList.add("loaded");
         };
+        const getApiBase = () => {
+          const configuredApi = apiUrlInput.value.trim().replace(/\/+$/, "");
+          if (configuredApi) return configuredApi;
+          if (window.location.port === "8000" && window.location.protocol === "http:") {
+            return window.location.origin;
+          }
+          return "";
+        };
+        if (checkServerButton) {
+          checkServerButton.addEventListener("click", async () => {
+            const apiBase = getApiBase();
+            if (!apiBase) {
+              status.textContent = "PCサーバーのURLを入力するか、PCの8000番ページを開いてください。";
+              status.className = "cm-status error";
+              return;
+            }
+            checkServerButton.disabled = true;
+            status.textContent = "接続を確認しています。";
+            status.className = "cm-status";
+            try {
+              const response = await fetch(`${apiBase}/api/health`, {headers: {"Accept": "application/json"}});
+              const result = await response.json();
+              if (!response.ok || result.ok !== true) throw new Error("応答が不正です。");
+              status.textContent = "PCのCM生成サーバーに接続しました。";
+              status.className = "cm-status success";
+            } catch {
+              status.textContent = "接続できません。PCと携帯のWi-Fi、IPアドレス、サーバー起動を確認してください。";
+              status.className = "cm-status error";
+            } finally {
+              checkServerButton.disabled = false;
+            }
+          });
+        }
         if (backgroundInput && previewBackground) {
           backgroundInput.addEventListener("change", () => {
             const selected = backgroundInput.files[0];
@@ -857,7 +881,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           });
         }
 
-        const shareText = "12月オープン予定｜ツイテル鑑定所。オープン前から個人鑑定を承っています。金運・健康運を中心に、毎日のメッセージをお届けします。 #ツイテル鑑定所 #12月オープン #個人鑑定";
+        const shareText = "12月オープン予定｜ツイテル鑑定所。オープン前から個人鑑定を承っています。 #ツイテル鑑定所 #12月オープン #個人鑑定";
         const shareX = document.querySelector("#share-x");
         const shareLine = document.querySelector("#share-line");
         if (shareX) {
@@ -928,13 +952,10 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         }
 
         const updateCommand = () => {
-          const date = dateInput.value;
-          const option = date ? ` --date ${date}` : "";
           command.textContent =
             "cd /Users/hidemitogo/.copilot/repos/managing-work\n" +
-            `python3 cm_generator/generate_cm.py${option} --output-dir generated`;
+            "python3 cm_generator/generate_cm.py --output-dir generated";
         };
-        dateInput.addEventListener("change", updateCommand);
         copyButton.addEventListener("click", async () => {
           try {
             await navigator.clipboard.writeText(command.textContent);
@@ -989,18 +1010,14 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
               });
               showBackgroundPreview(background);
             }
-            const configuredApi = apiUrlInput.value.trim().replace(/\/+$/, "");
-            const isLocalServerPage = window.location.protocol === "http:"
-              && window.location.port === "8000";
-            const apiBase = configuredApi || (isLocalServerPage
-              ? window.location.origin
-              : (["localhost", "127.0.0.1"].includes(window.location.hostname)
-                ? ""
-                : "http://127.0.0.1:8000"));
+            const apiBase = getApiBase();
+            if (!apiBase) {
+              throw new Error("PCのCM生成サーバーURLを設定してください。");
+            }
             const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({date: dateInput.value, background})
+              body: JSON.stringify({background})
             });
             const contentType = response.headers.get("content-type") || "";
             if (!contentType.includes("application/json")) {

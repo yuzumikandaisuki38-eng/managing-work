@@ -21,16 +21,8 @@ import imageio_ffmpeg
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
-MESSAGES = (
-    ("金運", "小さな見直しが大きな実りに。財布と予定を整えると吉。"),
-    ("健康運", "無理を手放して、深呼吸をひとつ。体をいたわる選択が運気を育てます。"),
-    ("金運", "学びや道具への投資が未来につながる日。焦らず一歩ずつ。"),
-    ("健康運", "朝の水分補給と軽いストレッチで、心身の巡りを整えましょう。"),
-)
-
-
-def daily_message(day: dt.date) -> tuple[str, str]:
-    return MESSAGES[day.toordinal() % len(MESSAGES)]
+CM_SUBTITLE = "心と運気に寄り添う個人鑑定"
+CM_BODY = "12月オープン予定｜個人鑑定受付中"
 
 
 def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -52,8 +44,6 @@ def generate_art(
     path: Path,
     seed: int,
     size: tuple[int, int],
-    category: str,
-    message: str,
     background: Path | None = None,
 ) -> None:
     rng = np.random.default_rng(seed)
@@ -93,7 +83,7 @@ def generate_art(
     draw = ImageDraw.Draw(overlay)
     width, height = art.size
     title_font = japanese_font(54)
-    category_font = japanese_font(38)
+    category_font = japanese_font(32)
     body_font = japanese_font(27)
     small_font = japanese_font(24)
     draw.rounded_rectangle(
@@ -113,9 +103,9 @@ def generate_art(
         outline=(242, 228, 183, 180),
         width=2,
     )
-    draw.text((width // 2, panel_top + 58), category, font=category_font,
+    draw.text((width // 2, panel_top + 58), CM_SUBTITLE, font=category_font,
               fill=(255, 226, 148, 255), anchor="mm")
-    draw.text((width // 2, panel_top + 125), message, font=body_font,
+    draw.text((width // 2, panel_top + 125), CM_BODY, font=body_font,
               fill=(255, 255, 255, 255), anchor="mm", align="center",
               spacing=10)
     draw.text((width // 2, height - 82), "12月オープン予定｜個人鑑定受付中", font=small_font,
@@ -170,7 +160,7 @@ def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 
         output.writeframes(pcm.tobytes())
 
 
-def generate_video(image: Path, music: Path, output: Path, message: str, category: str) -> None:
+def generate_video(image: Path, music: Path, output: Path) -> None:
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     command = [
         ffmpeg, "-y", "-loop", "1", "-i", str(image), "-i", str(music),
@@ -212,16 +202,15 @@ def main() -> None:
 
     seed = args.seed if args.seed is not None else args.date.toordinal()
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    category, message = daily_message(args.date)
     stem = f"tsuiteru_{args.date.isoformat()}"
     image = args.output_dir / f"{stem}.png"
     music = args.output_dir / f"{stem}.wav"
     video = args.output_dir / f"{stem}.mp4"
-    generate_art(image, seed, (720, 1280), category, message, args.background)
+    generate_art(image, seed, (720, 1280), args.background)
     generate_music(music, seed)
-    generate_video(image, music, video, message, category)
+    generate_video(image, music, video)
     print(f"Generated: {image} and {music}")
-    print(f"Daily message ({category}): {message}")
+    print("CM content: ツイテル鑑定所 / 12月オープン予定 / 個人鑑定受付中")
     valid = validate_assets(image, music, video)
     print("Review required before any social posting or publication.")
     if not valid:

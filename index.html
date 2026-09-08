@@ -905,17 +905,23 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           status.className = "cm-status";
           files.replaceChildren();
           try {
-            const apiBase = window.location.origin;
+            const apiBase = "http://127.0.0.1:8000";
             const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},
               body: JSON.stringify({background: backgroundInput.value})
             });
             const contentType = response.headers.get("content-type") || "";
-            if (!contentType.includes("application/json")) {
-              throw new Error("CM生成APIがJSONを返しませんでした。local_server.pyを起動してください。");
+            const responseText = await response.text();
+            let result;
+            try {
+              result = JSON.parse(responseText);
+            } catch {
+              throw new Error(
+                `CM生成APIがJSONを返しませんでした（${response.status} ${contentType || "Content-Typeなし"}）。` +
+                "PCでlocal_server.pyを起動し、http://127.0.0.1:8000を開いてください。"
+              );
             }
-            const result = await response.json();
             if (!response.ok) throw new Error(result.error || "生成に失敗しました。");
             status.textContent = "生成しました。必要なファイルをダウンロードしてから、手動で公開してください。";
             status.className = "cm-status success";

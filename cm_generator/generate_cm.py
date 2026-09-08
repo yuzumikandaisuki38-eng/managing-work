@@ -188,14 +188,14 @@ def generate_art(
         (width // 2, panel_top + 62),
         "ツイテル鑑定所",
         font=title_font,
-        fill=(242, 228, 183, 255),
+        fill=(255, 248, 214, 255),
         anchor="mm",
     )
     draw.text(
         (width // 2, panel_top + 125),
         CM_SUBTITLE,
         font=subtitle_font,
-        fill=(255, 226, 148, 255),
+        fill=(255, 239, 166, 255),
         anchor="mm",
     )
     message_lines = three_line_message(message or CM_RESERVATION)
@@ -212,14 +212,14 @@ def generate_art(
         (width // 2, panel_bottom - 82),
         CM_OPENING,
         font=footer_font,
-        fill=(225, 211, 235, 255),
+        fill=(255, 244, 220, 255),
         anchor="mm",
     )
     draw.text(
         (width // 2, panel_bottom - 42),
         CM_RESERVATION,
         font=footer_font,
-        fill=(225, 211, 235, 255),
+        fill=(255, 244, 220, 255),
         anchor="mm",
     )
     Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)

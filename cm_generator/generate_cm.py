@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import subprocess
+import textwrap
 import wave
 from pathlib import Path
 
@@ -149,7 +150,7 @@ def generate_art(
     width, height = art.size
     title_font = japanese_font(54)
     category_font = japanese_font(32)
-    body_font = japanese_font(27)
+    body_font = japanese_font(25)
     small_font = japanese_font(24)
     draw.rounded_rectangle(
         (42, 48, width - 42, 170),
@@ -170,9 +171,16 @@ def generate_art(
     )
     draw.text((width // 2, panel_top + 58), CM_SUBTITLE, font=category_font,
               fill=(255, 226, 148, 255), anchor="mm")
-    draw.text((width // 2, panel_top + 125), message or CM_BODY, font=body_font,
-              fill=(255, 255, 255, 255), anchor="mm", align="center",
-              spacing=10)
+    message_lines = "\n".join(textwrap.wrap(message or CM_BODY, width=18, break_long_words=False))
+    draw.multiline_text(
+        (width // 2, panel_top + 145),
+        message_lines,
+        font=body_font,
+        fill=(255, 255, 255, 255),
+        anchor="mm",
+        align="center",
+        spacing=12,
+    )
     draw.text((width // 2, height - 82), "12月オープン予定｜個人鑑定受付中", font=small_font,
               fill=(225, 211, 235, 255), anchor="mm")
     Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)
@@ -201,21 +209,21 @@ def generate_art(
 
 def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 44100) -> None:
     t = np.arange(seconds * sample_rate) / sample_rate
-    # Sparse, consonant piano-like notes with a soft attack and long decay.
-    notes = ((0.6, 261.63), (3.6, 329.63), (6.6, 392.0), (9.6, 329.63))
+    # Sparse piano-like notes with a soft attack, low harmonics, and long decay.
+    notes = ((0.8, 261.63), (3.8, 329.63), (6.8, 392.0), (9.8, 329.63))
     audio = np.zeros_like(t, dtype=float)
     for start, frequency in notes:
         local = t - start
         active = local >= 0
-        envelope = np.where(active, np.exp(-local / 1.55) * (1 - np.exp(-local / 0.045)), 0)
+        envelope = np.where(active, np.exp(-local / 1.9) * (1 - np.exp(-local / 0.09)), 0)
         tone = (
             np.sin(2 * np.pi * frequency * local)
-            + 0.22 * np.sin(2 * np.pi * frequency * 2 * local)
-            + 0.06 * np.sin(2 * np.pi * frequency * 3 * local)
+            + 0.10 * np.sin(2 * np.pi * frequency * 2 * local)
+            + 0.025 * np.sin(2 * np.pi * frequency * 3 * local)
         )
         audio += tone * envelope
     fade = np.minimum(1, t / 1.2) * np.minimum(1, (seconds - t) / 1.8)
-    audio = np.clip(audio * 0.028 * fade, -0.12, 0.12)
+    audio = np.clip(audio * 0.018 * fade, -0.08, 0.08)
     pcm = (audio * 32767).astype(np.int16)
     with wave.open(str(path), "wb") as output:
         output.setnchannels(1)

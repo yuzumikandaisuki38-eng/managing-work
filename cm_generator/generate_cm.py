@@ -23,20 +23,64 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 CM_SUBTITLE = "心と運気に寄り添う個人鑑定"
 CM_BODY = "12月オープン予定｜個人鑑定受付中"
-DAILY_MESSAGES = (
-    "今日はどんな素敵な出会いが待っているでしょう？",
-    "小さな一歩が、明日のワクワクを連れてきます。",
-    "心がときめく方へ。新しい発見が始まります。",
-    "あなたらしい笑顔が、幸運の扉をそっと開きます。",
-    "いつもの景色に、うれしい変化を見つけましょう。",
-    "楽しむ気持ちを大切に。今日は輝くチャンスの日です。",
-    "未来のあなたから、素敵な知らせが届くかもしれません。",
+MESSAGE_OPENINGS = (
+    "今日は",
+    "今こそ",
+    "この瞬間から",
+    "あなたの毎日に",
+    "心の向くままに",
+    "軽やかな気持ちで",
+    "新しい一歩を",
+    "いつもの一日に",
+    "そっと深呼吸して",
+    "笑顔をひとつ添えて",
+)
+MESSAGE_ACTIONS = (
+    "小さな発見を楽しむと",
+    "心がときめく方へ進むと",
+    "気になっていたことを始めると",
+    "身近な人との会話を大切にすると",
+    "いつもと違う道を選ぶと",
+    "自分のペースを信じると",
+    "うれしい予定をひとつ思い描くと",
+    "好きなものに触れる時間をつくると",
+    "新しい景色に目を向けると",
+    "感謝の気持ちを言葉にすると",
+)
+MESSAGE_RESULTS = (
+    "素敵なチャンスが見つかります。",
+    "思いがけない発見に出会えます。",
+    "心が弾む出来事が始まります。",
+    "明日への楽しみが広がります。",
+    "あなたらしい魅力が輝きます。",
+    "うれしいご縁が近づいてきます。",
+    "毎日に新しい彩りが生まれます。",
+    "未来への扉がそっと開きます。",
+    "心地よい変化を感じられます。",
+    "ワクワクする予感に包まれます。",
+)
+MESSAGE_CLOSINGS = (
+    "楽しむ気持ちを大切に。",
+    "焦らず、軽やかに進みましょう。",
+    "あなたの直感を信じてみてください。",
+    "今日の幸せを見つけてみましょう。",
+    "小さな一歩から始めてみましょう。",
+    "笑顔の時間を過ごせますように。",
+    "心に余白を持って過ごしましょう。",
+    "うれしいことを自分に贈りましょう。",
+    "新しい発見を迎えに行きましょう。",
+    "今日も素敵な一日になりますように。",
 )
 DEFAULT_BACKGROUND = Path(__file__).resolve().parent.parent / "assets" / "cm_default_space.jpeg"
 
 
 def daily_message(day: dt.date) -> str:
-    return DAILY_MESSAGES[day.toordinal() % len(DAILY_MESSAGES)]
+    message_number = day.toordinal() % 10_000
+    opening = MESSAGE_OPENINGS[message_number % 10]
+    action = MESSAGE_ACTIONS[(message_number // 10) % 10]
+    result = MESSAGE_RESULTS[(message_number // 100) % 10]
+    closing = MESSAGE_CLOSINGS[(message_number // 1_000) % 10]
+    return f"{opening}{action}{result}{closing}"
 
 
 def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:

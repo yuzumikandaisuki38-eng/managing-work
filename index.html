@@ -309,6 +309,9 @@
       color:var(--gold-soft);
       font-size:0.86rem;
     }
+    .cm-files a::before{
+      content:"↓ ";
+    }
     .social-links{
       display:flex;
       flex-wrap:wrap;
@@ -894,8 +897,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
             result.files.forEach((file) => {
               const link = document.createElement("a");
               link.href = file;
-              link.target = "_blank";
-              link.rel = "noopener noreferrer";
+              link.download = file.split("/").pop() || "cm-asset";
               link.textContent = file.split("/").pop();
               files.append(link);
             });

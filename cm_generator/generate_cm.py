@@ -148,32 +148,26 @@ def generate_art(
     overlay = Image.new("RGBA", art.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
     width, height = art.size
-    title_font = japanese_font(54)
-    category_font = japanese_font(32)
+    title_font = japanese_font(48)
+    category_font = japanese_font(30)
     body_font = japanese_font(25)
-    small_font = japanese_font(24)
+    small_font = japanese_font(22)
+    center_top = int(height * 0.34)
+    center_bottom = int(height * 0.68)
     draw.rounded_rectangle(
-        (42, 48, width - 42, 170),
-        radius=28,
-        fill=(12, 7, 30, 170),
+        (42, center_top, width - 42, center_bottom),
+        radius=32,
+        fill=(12, 7, 30, 205),
         outline=(242, 228, 183, 190),
         width=2,
     )
-    draw.text((width // 2, 108), "ツイテル鑑定所", font=title_font,
+    draw.text((width // 2, center_top + 66), "ツイテル鑑定所", font=title_font,
               fill=(242, 228, 183, 255), anchor="mm")
-    panel_top = height - 360
-    draw.rounded_rectangle(
-        (42, panel_top, width - 42, height - 48),
-        radius=28,
-        fill=(12, 7, 30, 195),
-        outline=(242, 228, 183, 180),
-        width=2,
-    )
-    draw.text((width // 2, panel_top + 58), CM_SUBTITLE, font=category_font,
+    draw.text((width // 2, center_top + 132), CM_SUBTITLE, font=category_font,
               fill=(255, 226, 148, 255), anchor="mm")
     message_lines = "\n".join(textwrap.wrap(message or CM_BODY, width=18, break_long_words=False))
     draw.multiline_text(
-        (width // 2, panel_top + 145),
+        (width // 2, center_top + 215),
         message_lines,
         font=body_font,
         fill=(255, 255, 255, 255),
@@ -181,8 +175,8 @@ def generate_art(
         align="center",
         spacing=12,
     )
-    draw.text((width // 2, height - 82), "12月オープン予定｜個人鑑定受付中", font=small_font,
-              fill=(225, 211, 235, 255), anchor="mm")
+    draw.text((width // 2, center_bottom - 28), CM_BODY, font=small_font,
+              fill=(225, 211, 235, 255), anchor="ms")
     Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)
 
     # Add a deterministic star field after the soft background is rendered.

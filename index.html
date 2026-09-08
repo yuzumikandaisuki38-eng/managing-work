@@ -41,7 +41,7 @@
             isolation: isolate;
             background-size: cover;
             background-position: center;
-            background-blend-mode: soft-light;
+            background-blend-mode: normal;
         }
 
         #video-container::before {
@@ -56,7 +56,7 @@
                 radial-gradient(circle at 88% 68%, rgba(255,255,255,.6) 0 1px, transparent 2px),
                 radial-gradient(circle at 12% 78%, rgba(255,255,255,.55) 0 1px, transparent 2px);
             background-size: 93px 111px, 137px 149px, 173px 191px, 211px 223px, 157px 181px;
-            opacity: .8;
+            opacity: .35;
         }
 
         #video-container::after {
@@ -108,6 +108,11 @@
             display: none;
         }
 
+        .moon,
+        .halo {
+            opacity: .16;
+        }
+
         .illustration-art .ink {
             fill: none;
             stroke: rgba(255,240,213,.82);
@@ -133,6 +138,7 @@
             background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.62), rgba(255,255,255,.12) 34%, rgba(255,255,255,0) 70%);
             filter: blur(1px);
             animation: float 6s infinite ease-in-out;
+            opacity: .28;
         }
 
         .moon {
@@ -402,25 +408,25 @@
         }
 
         #text1 {
-            top: 19%;
-            font-size: 28px;
+            top: 18%;
+            font-size: 24px;
             letter-spacing: .08em;
             z-index: 2;
         }
 
         #text2 {
-            top: 40%;
-            font-size: 36px;
+            top: 43%;
+            font-size: 34px;
             color: #fff2a8;
-            text-shadow: 0 0 12px rgba(255, 230, 140, .75), 0 2px 12px rgba(0,0,0,.45);
+            text-shadow: 0 0 12px rgba(255, 230, 140, .75), 0 2px 14px rgba(0,0,0,.8);
             z-index: 2;
         }
 
         #text3 {
-            bottom: 13%;
+            bottom: 10%;
             font-size: 22px;
-            background: rgba(31, 16, 76, 0.38);
-            border: 1px solid rgba(255,255,255,.25);
+            background: rgba(22, 12, 46, 0.52);
+            border: 1px solid rgba(255,255,255,.38);
             padding: 13px 10px;
             border-radius: 14px;
             backdrop-filter: blur(10px);

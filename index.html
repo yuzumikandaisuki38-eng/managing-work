@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ツイテル鑑定所 CMメーカー</title>
+    <style>
+        :root {
+            --sns-width: 360px;
+            --sns-height: 640px; /* 9:16のSNS縦型サイズ */
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .app {
+            width: min(100%, 980px);
+        }
+
+        h1 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        /* プレビューエリア（SNS画面対応） */
+        #video-container {
+            width: var(--sns-width);
+            height: var(--sns-height);
+            background: linear-gradient(145deg, #19134d 0%, #4d267d 48%, #ef6e9b 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            isolation: isolate;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: soft-light;
+        }
+
+        #video-container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background:
+                radial-gradient(circle at 18% 12%, rgba(255,255,255,.45) 0 1px, transparent 2px),
+                radial-gradient(circle at 78% 21%, rgba(255,255,255,.7) 0 1px, transparent 2px),
+                radial-gradient(circle at 43% 32%, rgba(255,255,255,.5) 0 1px, transparent 2px),
+                radial-gradient(circle at 88% 68%, rgba(255,255,255,.6) 0 1px, transparent 2px),
+                radial-gradient(circle at 12% 78%, rgba(255,255,255,.55) 0 1px, transparent 2px);
+            background-size: 93px 111px, 137px 149px, 173px 191px, 211px 223px, 157px 181px;
+            opacity: .8;
+        }
+
+        #video-container::after {
+            content: "";
+            position: absolute;
+            left: -22%;
+            bottom: 11%;
+            width: 145%;
+            height: 28%;
+            z-index: -1;
+            background: linear-gradient(110deg, transparent 0 10%, rgba(133, 241, 255, .28) 45%, rgba(255, 174, 239, .26) 65%, transparent 90%);
+            filter: blur(20px);
+            transform: rotate(-9deg);
+            animation: aurora 8s ease-in-out infinite alternate;
+        }
+
+        #video-container {
+            border: 1px solid rgba(255,255,255,.48);
+        }
+
+        #video-container .illustration-texture {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: .28;
+            mix-blend-mode: screen;
+            background-image:
+                repeating-linear-gradient(115deg, rgba(255,255,255,.08) 0 1px, transparent 1px 7px),
+                repeating-linear-gradient(25deg, rgba(22,10,55,.08) 0 1px, transparent 1px 9px);
+            filter: contrast(115%);
+        }
+
+        .illustration-art {
+            position: absolute;
+            z-index: 1;
+            left: 8%;
+            bottom: 19%;
+            width: 84%;
+            height: 49%;
+            overflow: visible;
+            opacity: .72;
+            filter: drop-shadow(0 0 8px rgba(255,225,176,.5));
+        }
+
+        .illustration-art .ink {
+            fill: none;
+            stroke: rgba(255,240,213,.82);
+            stroke-width: 1.35;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .illustration-art .wash {
+            fill: rgba(235,196,255,.2);
+            stroke: rgba(255,240,213,.48);
+            stroke-width: 1;
+        }
+
+        .scene-2 .illustration-art { filter: sepia(.2) saturate(1.35) drop-shadow(0 0 8px rgba(255,218,143,.7)); }
+        .scene-3 .illustration-art .wash { fill: rgba(186,224,255,.24); }
+        .scene-5 .illustration-art { opacity: .86; }
+        .scene-8 .illustration-art .wash { fill: rgba(255,214,133,.27); }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.62), rgba(255,255,255,.12) 34%, rgba(255,255,255,0) 70%);
+            filter: blur(1px);
+            animation: float 6s infinite ease-in-out;
+        }
+
+        .moon {
+            position: absolute;
+            top: 9%;
+            right: 13%;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #fff 0 8%, #ffe8fa 30%, #d8b8ff 75%);
+            box-shadow: 0 0 22px rgba(255, 221, 252, .8), 0 0 70px rgba(199, 156, 255, .45);
+            opacity: .92;
+        }
+
+        .moon::after {
+            content: "";
+            position: absolute;
+            inset: 11px;
+            border: 1px solid rgba(255,255,255,.5);
+            border-radius: 50%;
+        }
+
+        .halo {
+            position: absolute;
+            top: 34%;
+            left: 50%;
+            width: 250px;
+            height: 250px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.28);
+            box-shadow: 0 0 0 18px rgba(255,255,255,.04), 0 0 50px rgba(255,187,246,.35);
+            animation: pulse 5s ease-in-out infinite;
+        }
+
+        .brand-mark {
+            position: absolute;
+            top: 7%;
+            left: 9%;
+            color: rgba(255,255,255,.9);
+            font-size: 12px;
+            letter-spacing: .2em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .goddess {
+            position: absolute;
+            z-index: 0;
+            left: 50%;
+            bottom: 20%;
+            width: 190px;
+            height: 260px;
+            transform: translateX(-50%);
+            filter: drop-shadow(0 0 18px rgba(255, 226, 178, .65));
+            opacity: .94;
+        }
+
+        .goddess-halo {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            width: 74px;
+            height: 74px;
+            transform: translateX(-50%);
+            border: 2px solid rgba(255, 238, 181, .9);
+            border-radius: 50%;
+            box-shadow: 0 0 18px rgba(255, 216, 133, .8), inset 0 0 14px rgba(255,255,255,.45);
+        }
+
+        .goddess-head {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            width: 42px;
+            height: 50px;
+            transform: translateX(-50%);
+            border-radius: 48% 48% 45% 45%;
+            background: linear-gradient(110deg, #ffe9c4, #fff8df 55%, #eebf91);
+            box-shadow: inset -7px -3px 0 rgba(193, 113, 105, .13);
+        }
+
+        .goddess-head::before {
+            content: "✦";
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffe9a6;
+            font-size: 27px;
+            text-shadow: 0 0 10px #fff0a8;
+        }
+
+        .goddess-hair {
+            position: absolute;
+            top: 19px;
+            left: 50%;
+            width: 62px;
+            height: 88px;
+            transform: translateX(-50%);
+            border-radius: 50% 50% 42% 42%;
+            background: linear-gradient(105deg, #6e3c75, #e5a57f 48%, #6e3c75);
+            z-index: -1;
+            box-shadow: 0 8px 0 rgba(53, 26, 87, .25);
+        }
+
+        .goddess-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 82px;
+            height: 164px;
+            transform: translateX(-50%);
+            border-radius: 48% 48% 18% 18%;
+            background: linear-gradient(100deg, #c685bb, #fff0cb 47%, #c379b0);
+            clip-path: polygon(38% 0, 62% 0, 74% 25%, 100% 100%, 0 100%, 26% 25%);
+        }
+
+        .goddess-body::after {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 1px;
+            height: 112px;
+            background: rgba(255,255,255,.75);
+            box-shadow: 0 0 8px rgba(255,255,255,.8);
+        }
+
+        .wing {
+            position: absolute;
+            top: 78px;
+            width: 88px;
+            height: 140px;
+            background: linear-gradient(145deg, rgba(255,255,255,.88), rgba(185, 202, 255, .18) 65%, transparent);
+            opacity: .82;
+            clip-path: polygon(50% 0, 100% 15%, 84% 28%, 100% 47%, 72% 45%, 78% 70%, 51% 56%, 42% 100%, 31% 62%, 0 74%, 21% 43%, 0 31%, 34% 25%);
+        }
+
+        .wing.left { left: 0; transform: rotate(-8deg); }
+        .wing.right { right: 0; transform: scaleX(-1) rotate(-8deg); }
+
+        .scene-label {
+            position: absolute;
+            right: 9%;
+            top: 7%;
+            color: rgba(255,255,255,.72);
+            font-size: 10px;
+            letter-spacing: .16em;
+            z-index: 2;
+        }
+
+        .scene-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .scene-overlay::before,
+        .scene-overlay::after {
+            content: "";
+            position: absolute;
+            opacity: 0;
+            transition: opacity .5s ease;
+        }
+
+        .scene-1 .scene-overlay::before {
+            opacity: .8;
+            width: 210px;
+            height: 120px;
+            left: -30px;
+            top: 34%;
+            border-radius: 50%;
+            border: 2px solid rgba(224, 194, 255, .55);
+            box-shadow: 0 0 24px rgba(210, 170, 255, .65), 0 0 0 22px rgba(220, 180, 255, .12);
+            transform: rotate(-18deg);
+        }
+
+        .scene-2 .scene-overlay::before {
+            opacity: .72;
+            left: 10%;
+            top: 0;
+            width: 5px;
+            height: 78%;
+            background: linear-gradient(#fff8d0, transparent);
+            box-shadow: 50px 0 18px rgba(255,228,157,.3), 96px 0 8px rgba(255,248,210,.32);
+            transform: skewX(-18deg);
+        }
+
+        .scene-3 .scene-overlay::before {
+            opacity: .8;
+            inset: 21% 10% 16%;
+            border: 1px solid rgba(213, 232, 255, .72);
+            border-radius: 48% 52% 42% 58%;
+            box-shadow: inset 0 0 30px rgba(188, 223, 255, .32), 0 0 25px rgba(215, 238, 255, .3);
+        }
+
+        .scene-4 .scene-overlay::before {
+            opacity: .9;
+            left: 50%;
+            bottom: 29%;
+            width: 5px;
+            height: 150px;
+            background: linear-gradient(#ffe89b, transparent);
+            box-shadow: 0 0 18px #ffe49b, -36px 10px 12px rgba(255,226,143,.45), 36px 10px 12px rgba(255,226,143,.45);
+            transform: translateX(-50%) rotate(4deg);
+        }
+
+        .scene-5 .scene-overlay::before {
+            content: "3 7 1 9 4 8";
+            opacity: .68;
+            left: 8%;
+            top: 28%;
+            color: #f8dd9f;
+            font: 700 18px Georgia, serif;
+            letter-spacing: 13px;
+            text-shadow: 0 0 12px #ffe39c;
+        }
+
+        .scene-6 .scene-overlay::before {
+            opacity: .8;
+            left: 0;
+            bottom: 10%;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(90deg, transparent, rgba(255,177,150,.6), transparent);
+            filter: blur(18px);
+        }
+
+        .scene-7 .scene-overlay::before {
+            opacity: .7;
+            left: 12%;
+            bottom: 18%;
+            width: 78%;
+            height: 100px;
+            background: radial-gradient(ellipse, rgba(229,202,239,.56), transparent 68%);
+            filter: blur(13px);
+        }
+
+        .scene-8 .scene-overlay::before {
+            opacity: .82;
+            left: 50%;
+            top: 28%;
+            width: 110px;
+            height: 190px;
+            border: 3px solid #f8d98b;
+            border-bottom: 0;
+            border-radius: 60px 60px 0 0;
+            box-shadow: 0 0 20px #f8d98b, inset 0 0 28px rgba(255,219,132,.6);
+            transform: translateX(-50%);
+        }
+
+        /* テキスト・キャッチコピー */
+        .text-element {
+            position: absolute;
+            width: 90%;
+            left: 5%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            white-space: pre-line;
+        }
+
+        #text1 {
+            top: 19%;
+            font-size: 28px;
+            letter-spacing: .08em;
+            z-index: 2;
+        }
+
+        #text2 {
+            top: 40%;
+            font-size: 36px;
+            color: #fff2a8;
+            text-shadow: 0 0 12px rgba(255, 230, 140, .75), 0 2px 12px rgba(0,0,0,.45);
+            z-index: 2;
+        }
+
+        #text3 {
+            bottom: 13%;
+            font-size: 22px;
+            background: rgba(31, 16, 76, 0.38);
+            border: 1px solid rgba(255,255,255,.25);
+            padding: 13px 10px;
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+            z-index: 2;
+        }
+
+        /* 再生中のアニメーション制御 */
+        .active {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+
+            @keyframes aurora {
+                from { transform: translateX(-8%) rotate(-9deg) scale(1); }
+                to { transform: translateX(8%) rotate(-4deg) scale(1.12); }
+            }
+
+            @keyframes pulse {
+                0%, 100% { transform: translate(-50%, -50%) scale(.96); opacity: .65; }
+                50% { transform: translate(-50%, -50%) scale(1.04); opacity: 1; }
+            }
+
+            50% {
+                transform: translateY(-30px) scale(1.1);
+            }
+        }
+
+        /* コントロールパネル */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .editor, .library {
+            margin-top: 24px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .editor h2, .library h2 { margin-top: 0; color: #333; }
+        .scene-presets {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            margin: 12px 0 16px;
+        }
+        .scene-presets button {
+            padding: 10px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #5c4c9d, #b879ad);
+            font-size: 13px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        label { display: flex; flex-direction: column; gap: 5px; color: #444; font-weight: bold; }
+        input, textarea, select {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #ccd2da;
+            border-radius: 6px;
+            font: inherit;
+        }
+        textarea { min-height: 70px; resize: vertical; }
+        .editor-actions, .bulk-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .secondary { background: #6c757d; }
+        .danger { background: #dc3545; }
+        .count { color: #666; margin: 10px 0; }
+        #cm-list { display: grid; gap: 8px; max-height: 420px; overflow: auto; }
+        .cm-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #e1e5ea;
+            border-radius: 8px;
+        }
+        .cm-row strong, .cm-row small { display: block; }
+        .row-actions { display: flex; gap: 6px; }
+        .row-actions button { padding: 8px 12px; font-size: 13px; }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .cm-row { grid-template-columns: 1fr; }
+            .scene-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+    <h1>ツイテル鑑定所 - SNS用CMメーカー</h1>
+
+    <!-- 動画プレビュー画面（9:16縦型） -->
+    <div id="video-container">
+        <!-- 背景の動く装飾（画像不要・著作権フリー） -->
+        <div class="circle" style="width: 200px; height: 200px; top: -50px; left: -50px;"></div>
+        <div class="circle" style="width: 150px; height: 150px; bottom: -30px; right: -30px; animation-delay: 2s;"></div>
+        <div class="moon" aria-hidden="true"></div>
+        <div class="halo" aria-hidden="true"></div>
+        <div class="brand-mark">LUCKY GUIDE</div>
+        <div class="scene-label" id="scene-label">SCENE 01</div>
+        <div class="scene-overlay" aria-hidden="true"></div>
+        <div class="illustration-texture" aria-hidden="true"></div>
+        <svg class="illustration-art" viewBox="0 0 300 210" aria-hidden="true">
+            <path class="wash" d="M103 177c-7-30 5-55 28-72 12-9 21-17 24-31 18 9 35 28 39 51 5 27-5 49-20 64z"/>
+            <path class="ink" d="M143 77c-5-13 1-29 15-36 13-7 28-1 35 10 6 10 3 22-5 30-5 5-10 8-15 12"/>
+            <path class="ink" d="M169 93c-13 8-24 15-31 28-10 18-8 37-6 55"/>
+            <path class="ink" d="M190 80c13 10 23 25 25 43 3 20-3 37-12 51"/>
+            <path class="ink" d="M137 77c-17 3-29 16-39 33-8 14-18 23-30 30 18 4 34 0 47-11"/>
+            <path class="ink" d="M200 77c18 5 32 17 41 34 7 13 16 22 28 27-17 7-34 3-48-9"/>
+            <path class="ink" d="M151 53c6-16 28-24 43-11"/>
+            <path class="ink" d="M157 69c5 3 11 4 16 2"/>
+            <circle class="ink" cx="174" cy="64" r="1.7"/>
+            <path class="ink" d="M91 28c3 6 3 13 0 19m-7-12c6 3 12 3 18 0M232 35c3 6 3 13 0 19m-8-13c6 3 12 3 18 0"/>
+            <path class="ink" d="M35 171c42-17 71-18 102-9 32 9 57 9 92-3 20-7 38-10 53-8"/>
+        </svg>
+        <div class="goddess" aria-label="月光の女神">
+            <div class="goddess-halo"></div>
+            <div class="wing left"></div>
+            <div class="wing right"></div>
+            <div class="goddess-hair"></div>
+            <div class="goddess-head"></div>
+            <div class="goddess-body"></div>
+        </div>
+
+        <!-- タイムラインに沿って表示される文字 -->
+        <div id="text1" class="text-element active">最近、ツイてる？</div>
+        <div id="text2" class="text-element active">ツイテル鑑定所</div>
+        <div id="text3" class="text-element active">あなたの運気を<br>今すぐチェック！</div>
+    </div>
+
+    <div class="controls"><button type="button" onclick="startCM()">CMを再生する</button></div>
+
+    <section class="editor">
+        <h2>CMを編集</h2>
+        <div class="form-grid">
+            <label>CM名<input id="edit-name" maxlength="60"></label>
+            <label>背景色（CSS）<input id="edit-background" placeholder="linear-gradient(135deg, #667eea, #764ba2)"></label>
+            <label>テロップ1<textarea id="edit-text1" maxlength="100"></textarea></label>
+            <label>テロップ2<textarea id="edit-text2" maxlength="100"></textarea></label>
+            <label>テロップ3<textarea id="edit-text3" maxlength="150"></textarea></label>
+        </div>
+        <div class="editor-actions">
+            <button type="button" onclick="saveCM()">保存</button>
+            <button type="button" class="secondary" onclick="newCM()">新規CM</button>
+        </div>
+    </section>
+
+    <section class="library">
+        <h2>CMライブラリ</h2>
+        <div class="bulk-actions">
+            <label style="flex: 1; min-width: 180px;">作成数（最大1000）
+                <input id="bulk-count" type="number" min="1" max="1000" value="1000">
+            </label>
+            <button type="button" onclick="generateCMs()">CMを一括生成</button>
+            <button type="button" class="danger" onclick="clearCMs()">全削除</button>
+        </div>
+        <div class="scene-presets" id="scene-presets"></div>
+        <button type="button" class="secondary" onclick="createSceneSet()">8シーンをライブラリに追加</button>
+        <p id="cm-count" class="count"></p>
+        <div id="cm-list"></div>
+    </section>
+    </main>
+
+    <!-- 著作権フリーのWeb Audio API（コードで音楽を自動生成） -->
+    <script>
+        let audioCtx = null;
+        let cms = JSON.parse(localStorage.getItem("tsuiteru-cms") || "[]");
+        let selectedId = null;
+        const palettes = [
+            "linear-gradient(135deg, #667eea, #764ba2)",
+            "linear-gradient(135deg, #f093fb, #f5576c)",
+            "linear-gradient(135deg, #4facfe, #00f2fe)",
+            "linear-gradient(135deg, #43e97b, #38f9d7)",
+            "linear-gradient(135deg, #fa709a, #fee140)"
+        ];
+        const scenePresets = [
+            ["No.1", "女性の横顔と宇宙の波", "コズミックラベンダー", "ラベンダーの宇宙の波とゴールドの星屑"],
+            ["No.2", "朝の窓辺と光の筋", "光と陽射し", "朝の光の筋とゆっくり上昇するゴールドの粒"],
+            ["No.3", "透明なバリアと女性", "平穏の守り", "内側に灯るゴールドの暖かい光"],
+            ["No.4", "両手を胸に・降り注ぐ星", "願いと引力", "手のひらから立ち昇る光と降り注ぐ星"],
+            ["No.5", "夜空の数字と光の道", "サインと導き", "雲間から差すゴールドの光の道"],
+            ["No.6", "月から朝焼け・背中", "転機と夜明け", "しずむ月からラベンダーの朝焼けへ"],
+            ["No.7", "月明かりの寝室・湯気", "不安と安らぎ", "ラベンダーの湯気と夜空へ届く手紙"],
+            ["No.8", "霧の扉", "直感と扉", "ラベンダーの霧の先に輝くゴールドの扉"]
+        ];
+        const sceneBackgrounds = [
+            "linear-gradient(145deg, #17133f, #8561b8 48%, #f0bfda)",
+            "linear-gradient(145deg, #8d6bb5, #f5c8a0 48%, #fff0b6)",
+            "linear-gradient(145deg, #272452, #6f6da8 52%, #e4c8df)",
+            "linear-gradient(145deg, #21154f, #7558a8 48%, #f2ca93)",
+            "linear-gradient(145deg, #0d173e, #4b397e 55%, #ddb66d)",
+            "linear-gradient(145deg, #17143f, #ad82bd 52%, #f5b17f)",
+            "linear-gradient(145deg, #121232, #564177 54%, #b993b6)",
+            "linear-gradient(145deg, #3c2d68, #ad87ca 52%, #f4d48b)"
+        ];
+        const sceneImages = Array.from({ length: 8 }, (_, index) => `assets/scene-${index + 1}.jpg`);
+
+        function playSound(freq, duration, startTime) {
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = "sine";
+            osc.frequency.value = freq;
+
+            gain.gain.setValueAtTime(0.1, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
+
+        function startCM() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const textElements = [
+                document.getElementById("text1"),
+                document.getElementById("text2"),
+                document.getElementById("text3")
+            ];
+
+            textElements.forEach((element) => element.classList.remove("active"));
+
+            setTimeout(() => {
+                textElements[0].classList.add("active");
+                playSound(523.25, 0.4, audioCtx.currentTime);
+            }, 500);
+
+            setTimeout(() => {
+                textElements[1].classList.add("active");
+                playSound(659.25, 0.4, audioCtx.currentTime);
+                playSound(783.99, 0.4, audioCtx.currentTime + 0.2);
+            }, 2000);
+
+            setTimeout(() => {
+                textElements[2].classList.add("active");
+                playSound(1046.5, 0.3, audioCtx.currentTime);
+                playSound(1318.51, 0.3, audioCtx.currentTime + 0.15);
+                playSound(1567.98, 0.5, audioCtx.currentTime + 0.3);
+            }, 4000);
+        }
+
+        function defaultCM(index = 1) {
+            const sceneIndex = (index - 1) % scenePresets.length;
+            const [number, visual, title, description] = scenePresets[sceneIndex];
+            return {
+                id: crypto.randomUUID(),
+                name: `${number} ${title} #${index}`,
+                text1: visual,
+                text2: title,
+                text3: description,
+                background: sceneBackgrounds[sceneIndex],
+                scene: number,
+                variant: index,
+                image: sceneImages[sceneIndex]
+            };
+        }
+
+        function sceneCM(scene, index) {
+            const [number, visual, title, description] = scene;
+            return {
+                ...defaultCM(index),
+                name: `${number} ${title}`,
+                text1: visual,
+                text2: title,
+                text3: description,
+                scene: number,
+                background: sceneBackgrounds[index - 1],
+                variant: index,
+                image: sceneImages[index - 1]
+            };
+        }
+
+        function persist() {
+            localStorage.setItem("tsuiteru-cms", JSON.stringify(cms));
+        }
+
+        function fillEditor(cm) {
+            selectedId = cm.id;
+            document.getElementById("edit-name").value = cm.name;
+            document.getElementById("edit-text1").value = cm.text1;
+            document.getElementById("edit-text2").value = cm.text2;
+            document.getElementById("edit-text3").value = cm.text3;
+            document.getElementById("edit-background").value = cm.background;
+            document.getElementById("video-container").style.background = cm.background;
+            const sceneNumber = Number(String(cm.scene || "No.1").replace("No.", "")) || 1;
+            const preview = document.getElementById("video-container");
+            preview.className = `scene-${sceneNumber}`;
+            preview.id = "video-container";
+            preview.style.backgroundImage = `linear-gradient(145deg, rgba(25, 19, 77, .58), rgba(118, 68, 145, .28)), url("${cm.image || sceneImages[sceneNumber - 1]}")`;
+            preview.style.setProperty("--variant", String(cm.variant || 1));
+            document.getElementById("scene-label").textContent = `${cm.scene || "No.1"} / VARIANT ${cm.variant || 1}`;
+            ["text1", "text2", "text3"].forEach((id, i) => {
+                document.getElementById(id).textContent = cm[`text${i + 1}`];
+            });
+        }
+
+        function saveCM() {
+            const cm = cms.find((item) => item.id === selectedId) || defaultCM(cms.length + 1);
+            cm.name = document.getElementById("edit-name").value.trim() || "無題のCM";
+            cm.text1 = document.getElementById("edit-text1").value;
+            cm.text2 = document.getElementById("edit-text2").value;
+            cm.text3 = document.getElementById("edit-text3").value;
+            cm.background = document.getElementById("edit-background").value.trim() || palettes[0];
+            if (!cms.some((item) => item.id === cm.id)) cms.unshift(cm);
+            persist();
+            fillEditor(cm);
+            renderList();
+        }
+
+        function newCM() {
+            fillEditor(defaultCM(cms.length + 1));
+            selectedId = null;
+        }
+
+        function generateCMs() {
+            const count = Math.min(1000, Math.max(1, Number(document.getElementById("bulk-count").value) || 1));
+            cms = Array.from({ length: count }, (_, i) => defaultCM(i + 1));
+            selectedId = cms[0].id;
+            persist();
+            fillEditor(cms[0]);
+            renderList();
+        }
+
+        function loadScene(sceneIndex) {
+            const cm = sceneCM(scenePresets[sceneIndex], sceneIndex + 1);
+            fillEditor(cm);
+            selectedId = null;
+        }
+
+        function createSceneSet() {
+            const available = 1000 - cms.length;
+            if (available <= 0) return;
+            const newScenes = scenePresets.slice(0, available).map((scene, index) =>
+                sceneCM(scene, cms.length + index + 1)
+            );
+            cms = [...newScenes, ...cms].slice(0, 1000);
+            persist();
+            fillEditor(newScenes[0]);
+            renderList();
+        }
+
+        function renderScenePresets() {
+            document.getElementById("scene-presets").innerHTML = scenePresets.map((scene, index) =>
+                `<button type="button" onclick="loadScene(${index})">${scene[0]}<br>${escapeHTML(scene[2])}</button>`
+            ).join("");
+        }
+
+        function editCM(id) {
+            const cm = cms.find((item) => item.id === id);
+            if (cm) fillEditor(cm);
+        }
+
+        function duplicateCM(id) {
+            if (cms.length >= 1000) return;
+            const source = cms.find((item) => item.id === id);
+            if (!source) return;
+            const copy = { ...source, id: crypto.randomUUID(), name: `${source.name} のコピー` };
+            cms.unshift(copy);
+            persist();
+            fillEditor(copy);
+            renderList();
+        }
+
+        function deleteCM(id) {
+            cms = cms.filter((item) => item.id !== id);
+            persist();
+            if (selectedId === id && cms[0]) fillEditor(cms[0]);
+            renderList();
+        }
+
+        function clearCMs() {
+            cms = [];
+            selectedId = null;
+            persist();
+            renderList();
+            newCM();
+        }
+
+        function renderList() {
+            document.getElementById("cm-count").textContent = `${cms.length} / 1000 件`;
+            document.getElementById("cm-list").innerHTML = cms.map((cm) => `
+                <div class="cm-row">
+                    <div><strong>${escapeHTML(cm.name)}</strong><small>${escapeHTML(cm.text2)}</small></div>
+                    <div class="row-actions">
+                        <button type="button" onclick="editCM('${cm.id}')">編集</button>
+                        <button type="button" class="secondary" onclick="duplicateCM('${cm.id}')">複製</button>
+                        <button type="button" class="danger" onclick="deleteCM('${cm.id}')">削除</button>
+                    </div>
+                </div>`).join("");
+        }
+
+        function escapeHTML(value) {
+            return String(value).replace(/[&<>"']/g, (char) => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+            }[char]));
+        }
+
+        if (cms.length && !cms[0].scene) {
+            cms = cms.map((cm, index) => {
+                const sceneIndex = index % scenePresets.length;
+                return {
+                    ...cm,
+                    scene: scenePresets[sceneIndex][0],
+                    variant: index + 1,
+                    background: sceneBackgrounds[sceneIndex],
+                    image: sceneImages[sceneIndex]
+                };
+            });
+            persist();
+        }
+        if (cms.length) fillEditor(cms[0]);
+        else newCM();
+        renderScenePresets();
+        renderList();
+    </script>
+</body>
+</html>

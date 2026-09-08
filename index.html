@@ -336,6 +336,14 @@
       font-size:0.84rem;
       line-height:1.8;
     }
+    .form-status{
+      min-height:1.8em;
+      margin:0;
+      color:var(--muted);
+      font-size:0.9rem;
+      line-height:1.8;
+    }
+    .form-status.error{color:#ffb9b9}
     footer{
       padding:36px 0 20px;
       text-align:center;
@@ -478,14 +486,14 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         </div>
 
         <div class="panel">
-          <form class="form">
+          <form id="contact-form" class="form">
             <div class="field">
               <label for="name">お名前</label>
-              <input id="name" type="text" placeholder="例：山田 太郎" />
+              <input id="name" type="text" placeholder="例：山田 太郎" required />
             </div>
             <div class="field">
               <label for="email">メールアドレス</label>
-              <input id="email" type="email" placeholder="example@mail.com" />
+              <input id="email" type="email" placeholder="example@mail.com" required />
             </div>
             <div class="field full">
               <label for="category">ご相談内容</label>
@@ -498,10 +506,13 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
             </div>
             <div class="field full">
               <label for="message">ご相談内容</label>
-              <textarea id="message" placeholder="ご相談内容をご記入ください。"></textarea>
+              <textarea id="message" placeholder="ご相談内容をご記入ください。" required></textarea>
             </div>
             <div class="field full">
               <button class="submit" type="submit">送信する</button>
+            </div>
+            <div class="field full">
+              <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
             </div>
           </form>
         </div>
@@ -536,6 +547,20 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
   </div>
     <script>
       (() => {
+        const contactForm = document.querySelector("#contact-form");
+        const formStatus = document.querySelector("#form-status");
+        if (contactForm && formStatus) {
+          contactForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (!contactForm.checkValidity()) {
+              contactForm.reportValidity();
+              return;
+            }
+            formStatus.textContent = "入力内容を確認しました。送信先が未設定のため、現在は外部送信していません。SNSのDMまたはお問い合わせ先を設定してご利用ください。";
+            formStatus.className = "form-status error";
+          });
+        }
+
         const dateInput = document.querySelector("#cm-date");
         const command = document.querySelector("#cm-command");
         const copyButton = document.querySelector("#copy-cm-command");

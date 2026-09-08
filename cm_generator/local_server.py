@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import datetime as dt
 import json
-import mimetypes
 import subprocess
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -35,7 +34,11 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(404, {"error": "Not found"})
             return
 
-        length = int(self.headers.get("Content-Length", "0"))
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            self._json(400, {"error": "Invalid Content-Length"})
+            return
         if length > 1024 * 16:
             self._json(413, {"error": "Request is too large"})
             return

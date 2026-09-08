@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import subprocess
-import textwrap
 import wave
 from pathlib import Path
 
@@ -146,41 +145,9 @@ def generate_art(
         fig.savefig(path, dpi=100, facecolor="#f8eee8")
         plt.close(fig)
         art = Image.open(path).convert("RGBA")
-    overlay = Image.new("RGBA", art.size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(overlay)
     width, height = art.size
-    title_font = japanese_font(48)
-    category_font = japanese_font(30)
-    body_font = japanese_font(25)
-    small_font = japanese_font(22)
-    center_top = int(height * 0.25)
-    center_bottom = int(height * 0.80)
-    draw.rounded_rectangle(
-        (42, center_top, width - 42, center_bottom),
-        radius=32,
-        fill=(12, 7, 30, 205),
-        outline=(242, 228, 183, 190),
-        width=2,
-    )
-    draw.text((width // 2, center_top + 62), "ツイテル鑑定所", font=title_font,
-              fill=(242, 228, 183, 255), anchor="mm")
-    draw.text((width // 2, center_top + 128), CM_SUBTITLE, font=category_font,
-              fill=(255, 226, 148, 255), anchor="mm")
-    message_lines = "\n".join(textwrap.wrap(message or CM_RESERVATION, width=18, break_long_words=False))
-    draw.multiline_text(
-        (width // 2, center_top + 245),
-        message_lines,
-        font=body_font,
-        fill=(255, 255, 255, 255),
-        anchor="mm",
-        align="center",
-        spacing=12,
-    )
-    draw.text((width // 2, center_bottom - 82), CM_OPENING, font=small_font,
-              fill=(225, 211, 235, 255), anchor="mm")
-    draw.text((width // 2, center_bottom - 42), CM_RESERVATION, font=small_font,
-              fill=(225, 211, 235, 255), anchor="mm")
-    Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)
+    # Text is intentionally omitted for this clean visual-only CM variant.
+    art.convert("RGB").save(path, quality=95)
 
     # Add a deterministic star field after the soft background is rendered.
     art = Image.open(path).convert("RGBA")

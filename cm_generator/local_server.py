@@ -160,10 +160,15 @@ class Handler(SimpleHTTPRequestHandler):
         self._json(200, {"date": day.isoformat(), "files": files, "bundle": bundle, "log": result.stdout[-2000:]})
 
 def main() -> None:
-    port = 8000
-    print(f"Serving {ROOT} at http://127.0.0.1:{port}")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run the local CM generation server.")
+    parser.add_argument("--host", default="127.0.0.1", help="Bind address; use 0.0.0.0 for same-Wi-Fi phone access")
+    parser.add_argument("--port", type=int, default=8000)
+    args = parser.parse_args()
+    print(f"Serving {ROOT} at http://{args.host}:{args.port}")
     print("Review generated assets before any publication.")
-    ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
+    ThreadingHTTPServer((args.host, args.port), Handler).serve_forever()
 
 
 if __name__ == "__main__":

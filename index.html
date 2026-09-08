@@ -658,6 +658,10 @@
             <label for="cm-background-url">画像URL</label>
             <input id="cm-background-url" type="url" placeholder="https://example.com/image.png" />
           </div>
+          <div class="cm-date-row">
+            <label for="cm-api-url">生成サーバーURL（携帯）</label>
+            <input id="cm-api-url" type="url" placeholder="例: http://192.168.1.10:8000" />
+          </div>
           <p class="note">
             <a class="btn secondary" href="https://lucky-title-maker.base44.app/" target="_blank" rel="noopener noreferrer">
               Base44アプリで画像を作る
@@ -667,6 +671,11 @@
             Base44アプリで画像を保存してからファイル欄で選択するか、画像ファイルのURLを入力してください。
             PNG・JPEG・WebP、6MB以下に対応しています。Base44アプリのページURL自体は画像ではないため、
             アプリURLではなく、画像を保存したURLを指定してください。
+          </p>
+          <p class="note">
+            携帯から生成する場合は、パソコンと携帯を同じWi-Fiに接続し、パソコンで
+            <code>python3 cm_generator/local_server.py --host 0.0.0.0</code>を実行してください。
+            パソコンのIPアドレス（例: <code>192.168.1.10</code>）を「生成サーバーURL」に入力します。
           </p>
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
 python3 cm_generator/generate_cm.py --output-dir generated</pre>
@@ -812,6 +821,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const generateButton = document.querySelector("#generate-cm");
         const backgroundInput = document.querySelector("#cm-background");
         const backgroundUrlInput = document.querySelector("#cm-background-url");
+        const apiUrlInput = document.querySelector("#cm-api-url");
         const previewBackground = document.querySelector("#preview-background");
         const status = document.querySelector("#cm-status");
         const files = document.querySelector("#cm-files");
@@ -979,9 +989,10 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
               });
               showBackgroundPreview(background);
             }
-            const apiBase = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+            const configuredApi = apiUrlInput.value.trim().replace(/\/+$/, "");
+            const apiBase = configuredApi || (["localhost", "127.0.0.1"].includes(window.location.hostname)
               ? ""
-              : "http://127.0.0.1:8000";
+              : "http://127.0.0.1:8000");
             const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},

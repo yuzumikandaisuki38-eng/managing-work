@@ -831,19 +831,20 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
               }
               audioContext = audioContext || new AudioContextConstructor();
               await audioContext.resume();
-              const notes = [261.63, 293.66, 329.63, 392, 440, 523.25];
+              const notes = [196, 220, 261.63, 293.66, 329.63];
               let noteIndex = 0;
               const playNote = () => {
                 const oscillator = audioContext.createOscillator();
                 const gain = audioContext.createGain();
                 oscillator.type = "sine";
                 oscillator.frequency.value = notes[noteIndex % notes.length];
-                gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.9);
+                gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.035, audioContext.currentTime + 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.2);
                 oscillator.connect(gain);
                 gain.connect(audioContext.destination);
                 oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.9);
+                oscillator.stop(audioContext.currentTime + 1.2);
                 noteIndex += 1;
               };
               playNote();

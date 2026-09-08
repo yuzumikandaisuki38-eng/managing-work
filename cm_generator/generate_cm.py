@@ -147,15 +147,21 @@ def generate_art(
 def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 44100) -> None:
     rng = np.random.default_rng(seed)
     t = np.arange(seconds * sample_rate) / sample_rate
-    notes = np.array([220.0, 261.63, 329.63, 392.0])
+    # Use a low-volume pentatonic palette and long envelopes for a calm,
+    # non-abrupt background bed.
+    notes = np.array([196.0, 220.0, 261.63, 293.66, 329.63])
+    phrase_length = 4.0
     melody = sum(
         np.sin(2 * np.pi * notes[i % len(notes)] * t + rng.random() * 2 * np.pi)
-        * np.exp(-((t % 3.0) - 1.5) ** 2 / 1.8)
-        for i in range(len(notes))
+        * (0.5 + 0.5 * np.cos(2 * np.pi * (t % phrase_length) / phrase_length))
+        for i in range(len(notes) - 1)
     )
-    pad = 0.35 * np.sin(2 * np.pi * 110.0 * t) + 0.2 * np.sin(2 * np.pi * 164.81 * t)
-    fade = np.minimum(1, t * 3) * np.minimum(1, (seconds - t) * 3)
-    audio = np.clip((melody * 0.12 + pad) * fade, -1, 1)
+    pad = (
+        0.16 * np.sin(2 * np.pi * 98.0 * t)
+        + 0.08 * np.sin(2 * np.pi * 146.83 * t)
+    )
+    fade = np.minimum(1, t / 2.5) * np.minimum(1, (seconds - t) / 2.5)
+    audio = np.clip((melody * 0.035 + pad) * fade, -0.28, 0.28)
     pcm = (audio * 32767).astype(np.int16)
     with wave.open(str(path), "wb") as output:
         output.setnchannels(1)

@@ -644,6 +644,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           <button id="copy-cm-command" class="copy-button" type="button">コマンドをコピー</button>
           <button id="generate-cm" class="submit generate-button" type="button">この日付のCMを生成</button>
           <p id="cm-status" class="cm-status" role="status" aria-live="polite"></p>
+          <div class="safe-note">公開用CMファイルをブラウザからそのままダウンロードできます。ファイルを確認してから、各SNSで手動投稿してください。</div>
           <div id="cm-files" class="cm-files"></div>
           <p class="safe-note">
             このページからSNSへ自動投稿することはありません。画像・音声・文面を人が確認してから手動で公開してください。
@@ -892,15 +893,27 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "生成に失敗しました。");
-            status.textContent = "生成しました。公開前に画像・音声・文面を確認してください。";
+            status.textContent = "生成しました。必要なファイルをダウンロードしてから、手動で公開してください。";
             status.className = "cm-status success";
-            result.files.forEach((file) => {
+
+            const createLink = (href, label) => {
               const link = document.createElement("a");
-              link.href = file;
-              link.download = file.split("/").pop() || "cm-asset";
-              link.textContent = file.split("/").pop();
-              files.append(link);
+              link.href = href;
+              link.download = label;
+              link.textContent = label;
+              link.rel = "noopener";
+              return link;
+            };
+
+            result.files.forEach((file) => {
+              const label = file.split("/").pop() || "cm-asset";
+              files.append(createLink(file, label));
             });
+
+            if (result.bundle) {
+              const allLink = createLink(result.bundle, "CM一式をまとめてダウンロード.zip");
+              files.append(allLink);
+            }
           } catch (error) {
             status.textContent = error instanceof Error
               ? `${error.message}。local_server.pyを起動しているか確認してください。`

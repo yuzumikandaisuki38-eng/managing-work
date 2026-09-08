@@ -380,6 +380,16 @@
         radial-gradient(circle at 30% 20%, #fff5eb 0, transparent 60%),
         radial-gradient(circle at 70% 80%, #e6f0fa 0, transparent 60%);
     }
+    .preview-background{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      opacity:0;
+      transition:opacity .4s ease;
+    }
+    .preview-background.loaded{opacity:.72}
     .preview-scene{
       position:absolute;
       inset:0;
@@ -574,6 +584,7 @@
       <h2>CMプレビュー</h2>
       <div class="preview-layout">
         <div class="cm-preview" aria-label="ツイテル鑑定所CMプレビュー">
+          <img id="preview-background" class="preview-background" alt="選択したBase44画像のプレビュー" />
           <div class="preview-gradient"></div>
           <div class="preview-scene active" data-preview-scene>
             <div class="preview-illustration">✨</div>
@@ -607,7 +618,7 @@
         </div>
         <div class="panel preview-copy">
           <h3>公開前にイメージを確認</h3>
-          <p>「CMを再生する」を押すと、4つのシーンが切り替わり、ブラウザ内でオリジナルの音色を再生します。</p>
+          <p>Base44画像を選ぶと、ここに背景として表示されます。「CMを再生する」を押すと、4つのシーンを確認できます。</p>
           <button id="play-preview" class="submit" type="button">CMを再生する</button>
           <p id="preview-status" class="preview-status" role="status" aria-live="polite"></p>
           <p class="safe-note">これはプレビューです。公開用のPNG/WAV/MP4は「CMを作る」から生成し、内容を確認してから手動で投稿してください。</p>
@@ -787,6 +798,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const copyButton = document.querySelector("#copy-cm-command");
         const generateButton = document.querySelector("#generate-cm");
         const backgroundInput = document.querySelector("#cm-background");
+        const previewBackground = document.querySelector("#preview-background");
         const status = document.querySelector("#cm-status");
         const files = document.querySelector("#cm-files");
         if (!dateInput || !command || !copyButton || !generateButton || !status || !files) return;
@@ -796,6 +808,29 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           .toISOString()
           .slice(0, 10);
         dateInput.value = localDate;
+
+        if (backgroundInput && previewBackground) {
+          backgroundInput.addEventListener("change", () => {
+            const selected = backgroundInput.files[0];
+            if (!selected) {
+              previewBackground.removeAttribute("src");
+              previewBackground.classList.remove("loaded");
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              previewBackground.src = reader.result;
+              previewBackground.classList.add("loaded");
+            };
+            reader.onerror = () => {
+              previewBackground.removeAttribute("src");
+              previewBackground.classList.remove("loaded");
+              status.textContent = "Base44画像をプレビューできませんでした。";
+              status.className = "cm-status error";
+            };
+            reader.readAsDataURL(selected);
+          });
+        }
 
         const shareText = "12月オープン予定｜ツイテル鑑定所。オープン前から個人鑑定を承っています。金運・健康運を中心に、毎日のメッセージをお届けします。 #ツイテル鑑定所 #12月オープン #個人鑑定";
         const shareX = document.querySelector("#share-x");

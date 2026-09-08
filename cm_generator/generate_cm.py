@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import subprocess
-import textwrap
 import wave
 from pathlib import Path
 
@@ -84,6 +83,19 @@ def daily_message(day: dt.date) -> str:
     result = MESSAGE_RESULTS[(message_number // 100) % 10]
     closing = MESSAGE_CLOSINGS[(message_number // 1_000) % 10]
     return f"{opening}{action}{result}{closing}"
+
+
+def two_line_message(message: str) -> str:
+    """Split the daily message into two balanced Japanese lines."""
+    if len(message) < 2:
+        return message
+    midpoint = len(message) // 2
+    split_points = [
+        index for index, character in enumerate(message)
+        if character in "、。！？" and index >= midpoint - 8
+    ]
+    split_at = min(split_points, key=lambda index: abs(index - midpoint)) + 1 if split_points else midpoint
+    return f"{message[:split_at]}\n{message[split_at:]}"
 
 
 def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -176,9 +188,7 @@ def generate_art(
         fill=(255, 226, 148, 255),
         anchor="mm",
     )
-    message_lines = "\n".join(
-        textwrap.wrap(message or CM_RESERVATION, width=17, break_long_words=False)
-    )
+    message_lines = two_line_message(message or CM_RESERVATION)
     draw.multiline_text(
         (width // 2, panel_top + 250),
         message_lines,

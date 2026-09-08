@@ -23,6 +23,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 CM_SUBTITLE = "心と運気に寄り添う個人鑑定"
 CM_BODY = "12月オープン予定｜個人鑑定受付中"
+DEFAULT_BACKGROUND = Path(__file__).resolve().parent.parent / "assets" / "cm_default_space.jpeg"
 
 
 def japanese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -48,8 +49,13 @@ def generate_art(
 ) -> None:
     rng = np.random.default_rng(seed)
     width, height = size
-    if background is not None:
-        art = ImageOps.fit(Image.open(background).convert("RGB"), (width, height), method=Image.Resampling.LANCZOS).convert("RGBA")
+    selected_background = background or (DEFAULT_BACKGROUND if DEFAULT_BACKGROUND.exists() else None)
+    if selected_background is not None:
+        art = ImageOps.fit(
+            Image.open(selected_background).convert("RGB"),
+            (width, height),
+            method=Image.Resampling.LANCZOS,
+        ).convert("RGBA")
         art.save(path)
     else:
         x = np.linspace(-6, 6, width)
@@ -197,7 +203,7 @@ def main() -> None:
     parser.add_argument("--date", type=dt.date.fromisoformat, default=dt.date.today())
     parser.add_argument("--output-dir", type=Path, default=Path("generated"))
     parser.add_argument("--seed", type=int, default=None)
-    parser.add_argument("--background", type=Path, default=None, help="Use a supplied image as the CM background")
+    parser.add_argument("--background", type=Path, default=None, help="Use one of the bundled CM background images")
     args = parser.parse_args()
 
     seed = args.seed if args.seed is not None else args.date.toordinal()

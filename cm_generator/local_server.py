@@ -4,17 +4,14 @@
 from __future__ import annotations
 
 import datetime as dt
-import base64
 import io
 import json
 import subprocess
 import sys
-import tempfile
 import zipfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
-from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -97,28 +94,18 @@ class Handler(SimpleHTTPRequestHandler):
         if length > 8 * 1024 * 1024:
             self._json(413, {"error": "Request is too large"})
             return
-        background_path = None
         try:
             payload = json.loads(self.rfile.read(length) or b"{}")
             day = dt.date.fromisoformat(str(payload.get("date") or dt.date.today()))
-            image_data = payload.get("background")
-            if image_data:
-                if not isinstance(image_data, str) or not image_data.startswith("data:image/"):
-                    raise ValueError("background must be a PNG, JPEG, or WebP data URL")
-                _, encoded = image_data.split(",", 1)
-                raw_image = base64.b64decode(encoded, validate=True)
-                if len(raw_image) > 6 * 1024 * 1024:
-                    raise ValueError("background image must be 6 MB or smaller")
-                with Image.open(io.BytesIO(raw_image)) as supplied:
-                    if supplied.format not in {"PNG", "JPEG", "WEBP"}:
-                        raise ValueError("background must be PNG, JPEG, or WebP")
-                    supplied.verify()
-                temporary = tempfile.NamedTemporaryFile(prefix="base44-", suffix=".png", dir=OUTPUT_DIR, delete=False)
-                background_path = Path(temporary.name)
-                temporary.write(raw_image)
-                temporary.close()
+            background_name = payload.get("background")
+            background_path = (ROOT / "assets" / str(background_name)).resolve() if background_name else None
+            if background_path is not None and (
+                background_path.parent != (ROOT / "assets").resolve()
+                or not background_path.is_file()
+            ):
+                raise ValueError("background is not an available bundled image")
         except (ValueError, TypeError, json.JSONDecodeError):
-            self._json(400, {"error": "Base44画像が不正です。画像はPNG/JPEG/WebP、6MB以下にしてください。"})
+            self._json(400, {"error": "選択した背景画像が利用できません。"})
             return
 
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -148,9 +135,6 @@ class Handler(SimpleHTTPRequestHandler):
         if result.returncode != 0:
             self._json(500, {"error": "Generation failed", "details": result.stderr[-2000:]})
             return
-        if background_path is not None:
-            background_path.unlink(missing_ok=True)
-
         stem = f"tsuiteru_{day.isoformat()}"
         files = [
             f"/generated/{stem}.png",

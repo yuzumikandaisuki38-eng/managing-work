@@ -54,7 +54,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Call the local CM generation API.")
     parser.add_argument("--url", default="http://127.0.0.1:8000/api/generate")
     parser.add_argument("--date", required=True, help="YYYY-MM-DD")
-    parser.add_argument("--background", default=None, help="Base44 image data URL")
+    parser.add_argument("--background", default="cm_space_planets.jpeg", help="Bundled background filename")
     args = parser.parse_args()
     try:
         print(json.dumps(fetch_cm_data(args.url, args.date, args.background), ensure_ascii=False, indent=2))

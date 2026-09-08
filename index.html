@@ -584,7 +584,7 @@
       <h2>CMプレビュー</h2>
       <div class="preview-layout">
         <div class="cm-preview" aria-label="ツイテル鑑定所CMプレビュー">
-          <img id="preview-background" class="preview-background" alt="選択したBase44画像のプレビュー" />
+          <img id="preview-background" class="preview-background loaded" src="assets/cm_space_planets.jpeg" alt="選択したCM背景のプレビュー" />
           <div class="preview-gradient"></div>
           <div class="preview-scene active" data-preview-scene>
             <div class="preview-illustration">✨</div>
@@ -618,7 +618,7 @@
         </div>
         <div class="panel preview-copy">
           <h3>公開前にイメージを確認</h3>
-          <p>Base44画像を選ぶと、ここに背景として表示されます。「CMを再生する」を押すと、4つのシーンを確認できます。</p>
+          <p>背景画像を選ぶと、ここに表示されます。「CMを再生する」を押すと、4つのシーンを確認できます。</p>
           <button id="play-preview" class="submit" type="button">CMを再生する</button>
           <p id="preview-status" class="preview-status" role="status" aria-live="polite"></p>
           <p class="safe-note">これはプレビューです。公開用のPNG/WAV/MP4は「CMを作る」から生成し、内容を確認してから手動で投稿してください。</p>
@@ -629,7 +629,7 @@
     <section id="cm-maker" class="section">
       <h2>CMを作る</h2>
       <p class="lead">
-        Base44画像または抽象画・オリジナルBGM・鑑定所の案内を組み合わせたCMを生成できます。
+        用意した背景画像・オリジナルBGM・鑑定所の案内を組み合わせたCMを生成できます。
         作成後は必ず内容を確認してから、手動で公開してください。
       </p>
       <div class="cm-tools">
@@ -647,28 +647,23 @@
           <h3>ターミナルから作成</h3>
           <p class="note">毎日の占いは使用せず、鑑定所の案内だけをCMとして生成します。</p>
           <div class="cm-date-row">
-            <label for="cm-background">Base44画像</label>
-            <input id="cm-background" type="file" accept="image/png,image/jpeg,image/webp" />
-          </div>
-          <div class="cm-date-row">
-            <label for="cm-background-url">画像URL</label>
-            <input id="cm-background-url" type="url" placeholder="https://example.com/image.png" />
+            <label for="cm-background">CM背景</label>
+            <select id="cm-background">
+              <option value="cm_space_planets.jpeg">宇宙・惑星</option>
+              <option value="cm_moon_pastel.png">月と花びら</option>
+              <option value="cm_yukata.jpeg">浴衣の女性</option>
+              <option value="cm_cat_watercolor.jpeg">窓辺の猫（水彩）</option>
+              <option value="cm_mystic_reading.jpeg">星空と鑑定</option>
+              <option value="cm_cat_window.jpeg">猫と窓辺</option>
+              <option value="cm_garden.jpeg">庭園と川</option>
+            </select>
           </div>
           <div class="cm-date-row">
             <label for="cm-api-url">生成サーバーURL（携帯）</label>
             <input id="cm-api-url" type="url" placeholder="例: http://192.168.1.10:8000" />
             <button id="check-cm-server" class="copy-button" type="button">接続確認</button>
           </div>
-          <p class="note">
-            <a class="btn secondary" href="https://lucky-title-maker.base44.app/" target="_blank" rel="noopener noreferrer">
-              Base44アプリで画像を作る
-            </a>
-          </p>
-          <p class="note">
-            Base44アプリで画像を保存してからファイル欄で選択するか、画像ファイルのURLを入力してください。
-            PNG・JPEG・WebP、6MB以下に対応しています。Base44アプリのページURL自体は画像ではないため、
-            アプリURLではなく、画像を保存したURLを指定してください。
-          </p>
+          <p class="note">添付された7種類の画像から背景を選べます。画像はリポジトリ内で管理し、外部URLは使用しません。</p>
           <p class="note">
             携帯から生成する場合は、パソコンと携帯を同じWi-Fiに接続し、パソコンでサーバーを起動します。
             その後、携帯では必ず <code>http://パソコンのIP:8000/#cm-maker</code> を開いてください。
@@ -816,7 +811,6 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const copyButton = document.querySelector("#copy-cm-command");
         const generateButton = document.querySelector("#generate-cm");
         const backgroundInput = document.querySelector("#cm-background");
-        const backgroundUrlInput = document.querySelector("#cm-background-url");
         const apiUrlInput = document.querySelector("#cm-api-url");
         const checkServerButton = document.querySelector("#check-cm-server");
         const previewBackground = document.querySelector("#preview-background");
@@ -824,10 +818,11 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const files = document.querySelector("#cm-files");
         if (!command || !copyButton || !generateButton || !status || !files) return;
 
-        const showBackgroundPreview = (dataUrl) => {
-          previewBackground.src = dataUrl;
+        const showBackgroundPreview = () => {
+          previewBackground.src = `assets/${backgroundInput.value}`;
           previewBackground.classList.add("loaded");
         };
+        backgroundInput.addEventListener("change", showBackgroundPreview);
         const getApiBase = () => {
           const configuredApi = apiUrlInput.value.trim().replace(/\/+$/, "");
           if (configuredApi) return configuredApi;
@@ -859,25 +854,6 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
             } finally {
               checkServerButton.disabled = false;
             }
-          });
-        }
-        if (backgroundInput && previewBackground) {
-          backgroundInput.addEventListener("change", () => {
-            const selected = backgroundInput.files[0];
-            if (!selected) {
-              previewBackground.removeAttribute("src");
-              previewBackground.classList.remove("loaded");
-              return;
-            }
-            const reader = new FileReader();
-            reader.onload = () => showBackgroundPreview(reader.result);
-            reader.onerror = () => {
-              previewBackground.removeAttribute("src");
-              previewBackground.classList.remove("loaded");
-              status.textContent = "Base44画像をプレビューできませんでした。";
-              status.className = "cm-status error";
-            };
-            reader.readAsDataURL(selected);
           });
         }
 
@@ -974,42 +950,6 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           status.className = "cm-status";
           files.replaceChildren();
           try {
-            let background = null;
-            if (backgroundInput.files.length) {
-              const selected = backgroundInput.files[0];
-              if (selected.size > 6 * 1024 * 1024) {
-                throw new Error("Base44画像は6MB以下にしてください。");
-              }
-              background = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(new Error("画像を読み込めませんでした。"));
-                reader.readAsDataURL(selected);
-              });
-            } else if (backgroundUrlInput.value.trim()) {
-              const imageUrl = backgroundUrlInput.value.trim();
-              let imageResponse;
-              try {
-                imageResponse = await fetch(imageUrl, {mode: "cors"});
-              } catch {
-                throw new Error("画像URLに接続できません。画像ファイルの公開URLとCORS設定を確認してください。");
-              }
-              const contentType = imageResponse.headers.get("content-type") || "";
-              if (!imageResponse.ok || !contentType.startsWith("image/")) {
-                throw new Error("URL先が画像ではありません。Base44アプリのページURLではなく画像URLを指定してください。");
-              }
-              const imageBlob = await imageResponse.blob();
-              if (imageBlob.size > 6 * 1024 * 1024) {
-                throw new Error("画像URLの画像は6MB以下にしてください。");
-              }
-              background = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(new Error("URL画像を読み込めませんでした。"));
-                reader.readAsDataURL(imageBlob);
-              });
-              showBackgroundPreview(background);
-            }
             const apiBase = getApiBase();
             if (!apiBase) {
               throw new Error("PCのCM生成サーバーURLを設定してください。");
@@ -1017,7 +957,7 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
             const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({background})
+              body: JSON.stringify({background: backgroundInput.value})
             });
             const contentType = response.headers.get("content-type") || "";
             if (!contentType.includes("application/json")) {

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import subprocess
+import textwrap
 import wave
 from pathlib import Path
 
@@ -146,8 +147,62 @@ def generate_art(
         plt.close(fig)
         art = Image.open(path).convert("RGBA")
     width, height = art.size
-    # Text is intentionally omitted for this clean visual-only CM variant.
-    art.convert("RGB").save(path, quality=95)
+    overlay = Image.new("RGBA", art.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    title_font = japanese_font(48)
+    subtitle_font = japanese_font(29)
+    message_font = japanese_font(24)
+    footer_font = japanese_font(22)
+    panel_top = int(height * 0.23)
+    panel_bottom = int(height * 0.81)
+    draw.rounded_rectangle(
+        (36, panel_top, width - 36, panel_bottom),
+        radius=30,
+        fill=(12, 7, 30, 205),
+        outline=(242, 228, 183, 210),
+        width=2,
+    )
+    draw.text(
+        (width // 2, panel_top + 62),
+        "ツイテル鑑定所",
+        font=title_font,
+        fill=(242, 228, 183, 255),
+        anchor="mm",
+    )
+    draw.text(
+        (width // 2, panel_top + 125),
+        CM_SUBTITLE,
+        font=subtitle_font,
+        fill=(255, 226, 148, 255),
+        anchor="mm",
+    )
+    message_lines = "\n".join(
+        textwrap.wrap(message or CM_RESERVATION, width=17, break_long_words=False)
+    )
+    draw.multiline_text(
+        (width // 2, panel_top + 250),
+        message_lines,
+        font=message_font,
+        fill=(255, 255, 255, 255),
+        anchor="mm",
+        align="center",
+        spacing=13,
+    )
+    draw.text(
+        (width // 2, panel_bottom - 82),
+        CM_OPENING,
+        font=footer_font,
+        fill=(225, 211, 235, 255),
+        anchor="mm",
+    )
+    draw.text(
+        (width // 2, panel_bottom - 42),
+        CM_RESERVATION,
+        font=footer_font,
+        fill=(225, 211, 235, 255),
+        anchor="mm",
+    )
+    Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)
 
     # Add a deterministic star field after the soft background is rendered.
     art = Image.open(path).convert("RGBA")

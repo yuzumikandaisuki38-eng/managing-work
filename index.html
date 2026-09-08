@@ -344,6 +344,11 @@
       line-height:1.8;
     }
     .form-status.error{color:#ffb9b9}
+    .contact-email{
+      color:var(--gold-soft);
+      text-decoration:none;
+      word-break:break-all;
+    }
     footer{
       padding:36px 0 20px;
       text-align:center;
@@ -483,6 +488,10 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
           <p class="note">
             ご相談内容に応じて、適切なプランをご提案いたします。まずはお気軽にお問い合わせください。
           </p>
+          <p class="note">
+            メールでのお問い合わせ:
+            <a class="contact-email" href="mailto:moa11271972@gmail.com">moa11271972@gmail.com</a>
+          </p>
         </div>
 
         <div class="panel">
@@ -556,8 +565,22 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
               contactForm.reportValidity();
               return;
             }
-            formStatus.textContent = "入力内容を確認しました。送信先が未設定のため、現在は外部送信していません。SNSのDMまたはお問い合わせ先を設定してご利用ください。";
-            formStatus.className = "form-status error";
+            const name = document.querySelector("#name").value.trim();
+            const email = document.querySelector("#email").value.trim();
+            const category = document.querySelector("#category").value;
+            const message = document.querySelector("#message").value.trim();
+            const subject = `ツイテル鑑定所へのお問い合わせ（${category}）`;
+            const body = [
+              `お名前: ${name}`,
+              `返信先: ${email}`,
+              `ご相談内容: ${category}`,
+              "",
+              message
+            ].join("\n");
+            window.location.href =
+              `mailto:moa11271972@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            formStatus.textContent = "メールアプリの下書きを開きました。内容を確認して送信してください。";
+            formStatus.className = "form-status";
           });
         }
 

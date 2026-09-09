@@ -24,6 +24,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 CM_SUBTITLE = "心と運気に寄り添う個人鑑定"
 CM_OPENING = "12月オープン予定"
 CM_RESERVATION = "オープン前から個人鑑定受付中"
+CM_RECRUITMENT = "大阪市まで通える占い師さんを募集中"
 MESSAGE_OPENINGS = (
     "今日は",
     "今こそ",
@@ -174,9 +175,9 @@ def generate_art(
     title_font = japanese_font(48)
     subtitle_font = japanese_font(29)
     message_font = japanese_font(24)
-    footer_font = japanese_font(22)
+    footer_font = japanese_font(19)
     panel_top = int(height * 0.23)
-    panel_bottom = int(height * 0.81)
+    panel_bottom = int(height * 0.84)
     draw.rounded_rectangle(
         (36, panel_top, width - 36, panel_bottom),
         radius=30,
@@ -216,8 +217,15 @@ def generate_art(
         anchor="mm",
     )
     draw.text(
-        (width // 2, panel_bottom - 42),
+        (width // 2, panel_bottom - 64),
         CM_RESERVATION,
+        font=footer_font,
+        fill=(255, 244, 220, 255),
+        anchor="mm",
+    )
+    draw.text(
+        (width // 2, panel_bottom - 28),
+        CM_RECRUITMENT,
         font=footer_font,
         fill=(255, 244, 220, 255),
         anchor="mm",

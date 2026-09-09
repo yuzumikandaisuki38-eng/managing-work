@@ -189,14 +189,18 @@ def generate_art(
         (width // 2, panel_top + 62),
         "ツイテル鑑定所",
         font=title_font,
-        fill=(255, 248, 214, 255),
+        fill=(255, 224, 112, 255),
+        stroke_width=2,
+        stroke_fill=(255, 248, 214, 230),
         anchor="mm",
     )
     draw.text(
         (width // 2, panel_top + 125),
         CM_SUBTITLE,
         font=subtitle_font,
-        fill=(255, 239, 166, 255),
+        fill=(255, 211, 82, 255),
+        stroke_width=1,
+        stroke_fill=(255, 248, 214, 210),
         anchor="mm",
     )
     message_lines = three_line_message(message or CM_RESERVATION)
@@ -204,7 +208,9 @@ def generate_art(
         (width // 2, panel_top + 250),
         message_lines,
         font=message_font,
-        fill=(255, 255, 255, 255),
+        fill=(255, 220, 112, 255),
+        stroke_width=1,
+        stroke_fill=(255, 246, 190, 220),
         anchor="mm",
         align="center",
         spacing=13,
@@ -213,21 +219,27 @@ def generate_art(
         (width // 2, panel_bottom - 82),
         CM_OPENING,
         font=footer_font,
-        fill=(255, 244, 220, 255),
+        fill=(255, 216, 96, 255),
+        stroke_width=1,
+        stroke_fill=(255, 246, 190, 210),
         anchor="mm",
     )
     draw.text(
         (width // 2, panel_bottom - 64),
         CM_RESERVATION,
         font=footer_font,
-        fill=(255, 244, 220, 255),
+        fill=(255, 216, 96, 255),
+        stroke_width=1,
+        stroke_fill=(255, 246, 190, 210),
         anchor="mm",
     )
     draw.text(
         (width // 2, panel_bottom - 28),
         CM_RECRUITMENT,
         font=footer_font,
-        fill=(255, 244, 220, 255),
+        fill=(255, 216, 96, 255),
+        stroke_width=1,
+        stroke_fill=(255, 246, 190, 210),
         anchor="mm",
     )
     Image.alpha_composite(art, overlay).convert("RGB").save(path, quality=95)

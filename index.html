@@ -247,6 +247,15 @@
       gap:20px;
       margin-top:26px;
     }
+    .cm-edit-fields{
+      display:grid;
+      gap:12px;
+      margin:18px 0;
+    }
+    .cm-edit-fields textarea{
+      min-height:72px;
+      resize:vertical;
+    }
     .code-box{
       margin:14px 0 0;
       padding:15px;
@@ -645,6 +654,21 @@
               <option value="cm_garden.jpeg">庭園と川</option>
             </select>
           </div>
+          <div class="cm-edit-fields" aria-label="CM文字編集">
+            <label for="cm-title">タイトル</label>
+            <input id="cm-title" value="ツイテル鑑定所" maxlength="200" />
+            <label for="cm-subtitle">サブタイトル</label>
+            <input id="cm-subtitle" value="心と運気に寄り添う個人鑑定" maxlength="200" />
+            <label for="cm-message">毎日のメッセージ（空欄なら日付から自動作成）</label>
+            <textarea id="cm-message" maxlength="200" placeholder="空欄なら毎日のメッセージを使用"></textarea>
+            <label for="cm-opening">オープン案内</label>
+            <input id="cm-opening" value="12月オープン予定" maxlength="200" />
+            <label for="cm-reservation">個人鑑定案内</label>
+            <input id="cm-reservation" value="オープン前から個人鑑定受付中" maxlength="200" />
+            <label for="cm-recruitment">募集案内</label>
+            <input id="cm-recruitment" value="大阪市まで通える占い師さんを募集中" maxlength="200" />
+          </div>
+          <p class="note">ここで入力した文字がCM画像に反映されます。Canva等で編集する場合も、この文字設定を元データとして利用できます。</p>
           <p class="note">添付された7種類の画像から背景を選べます。画像はリポジトリ内で管理し、外部URLは使用しません。</p>
           <p class="note">このCM生成機能はPC上で実行します。SNSへの自動投稿は行いません。</p>
           <pre id="cm-command" class="code-box">cd /Users/hidemitogo/.copilot/repos/managing-work
@@ -789,6 +813,14 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
         const copyButton = document.querySelector("#copy-cm-command");
         const generateButton = document.querySelector("#generate-cm");
         const backgroundInput = document.querySelector("#cm-background");
+        const textInputs = {
+          title: document.querySelector("#cm-title"),
+          subtitle: document.querySelector("#cm-subtitle"),
+          message: document.querySelector("#cm-message"),
+          opening: document.querySelector("#cm-opening"),
+          reservation: document.querySelector("#cm-reservation"),
+          recruitment: document.querySelector("#cm-recruitment")
+        };
         const previewBackground = document.querySelector("#preview-background");
         const status = document.querySelector("#cm-status");
         const files = document.querySelector("#cm-files");
@@ -896,7 +928,10 @@ python3 cm_generator/generate_cm.py --output-dir generated</pre>
             const response = await fetch(`${apiBase}/api/generate`, {
               method: "POST",
               headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({background: backgroundInput.value})
+              body: JSON.stringify({
+                background: backgroundInput.value,
+                ...Object.fromEntries(Object.entries(textInputs).map(([key, input]) => [key, input.value.trim()]))
+              })
             });
             const contentType = response.headers.get("content-type") || "";
             const responseText = await response.text();

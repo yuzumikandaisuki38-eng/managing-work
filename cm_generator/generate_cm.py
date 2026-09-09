@@ -25,6 +25,7 @@ CM_SUBTITLE = "心と運気に寄り添う個人鑑定"
 CM_OPENING = "12月オープン予定"
 CM_RESERVATION = "オープン前から個人鑑定受付中"
 CM_RECRUITMENT = "大阪市まで通える占い師さんを募集中"
+CM_TITLE = "ツイテル鑑定所"
 MESSAGE_OPENINGS = (
     "今日は",
     "今こそ",
@@ -130,6 +131,11 @@ def generate_art(
     size: tuple[int, int],
     background: Path | None = None,
     message: str = "",
+    title: str = CM_TITLE,
+    subtitle: str = CM_SUBTITLE,
+    opening: str = CM_OPENING,
+    reservation: str = CM_RESERVATION,
+    recruitment: str = CM_RECRUITMENT,
 ) -> None:
     rng = np.random.default_rng(seed)
     width, height = size
@@ -187,7 +193,7 @@ def generate_art(
     )
     draw.text(
         (width // 2, panel_top + 62),
-        "ツイテル鑑定所",
+        title,
         font=title_font,
         fill=(255, 224, 112, 255),
         stroke_width=2,
@@ -196,7 +202,7 @@ def generate_art(
     )
     draw.text(
         (width // 2, panel_top + 125),
-        CM_SUBTITLE,
+        subtitle,
         font=subtitle_font,
         fill=(255, 211, 82, 255),
         stroke_width=1,
@@ -217,7 +223,7 @@ def generate_art(
     )
     draw.text(
         (width // 2, panel_bottom - 82),
-        CM_OPENING,
+        opening,
         font=footer_font,
         fill=(255, 216, 96, 255),
         stroke_width=1,
@@ -226,7 +232,7 @@ def generate_art(
     )
     draw.text(
         (width // 2, panel_bottom - 64),
-        CM_RESERVATION,
+        reservation,
         font=footer_font,
         fill=(255, 216, 96, 255),
         stroke_width=1,
@@ -235,7 +241,7 @@ def generate_art(
     )
     draw.text(
         (width // 2, panel_bottom - 28),
-        CM_RECRUITMENT,
+        recruitment,
         font=footer_font,
         fill=(255, 216, 96, 255),
         stroke_width=1,
@@ -334,16 +340,33 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=Path("generated"))
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--background", type=Path, default=None, help="Use one of the bundled CM background images")
+    parser.add_argument("--title", default=CM_TITLE)
+    parser.add_argument("--subtitle", default=CM_SUBTITLE)
+    parser.add_argument("--opening", default=CM_OPENING)
+    parser.add_argument("--reservation", default=CM_RESERVATION)
+    parser.add_argument("--recruitment", default=CM_RECRUITMENT)
+    parser.add_argument("--message", default=None, help="Override the daily message")
     args = parser.parse_args()
 
     seed = args.seed if args.seed is not None else args.date.toordinal()
-    message = daily_message(args.date)
+    message = args.message if args.message is not None else daily_message(args.date)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     stem = f"tsuiteru_{args.date.isoformat()}"
     image = args.output_dir / f"{stem}.png"
     music = args.output_dir / f"{stem}.wav"
     video = args.output_dir / f"{stem}.mp4"
-    generate_art(image, seed, (720, 1280), args.background, message)
+    generate_art(
+        image,
+        seed,
+        (720, 1280),
+        args.background,
+        message,
+        args.title,
+        args.subtitle,
+        args.opening,
+        args.reservation,
+        args.recruitment,
+    )
     if DEFAULT_MUSIC.exists():
         music.write_bytes(DEFAULT_MUSIC.read_bytes())
     else:

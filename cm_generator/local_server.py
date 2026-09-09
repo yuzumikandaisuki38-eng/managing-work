@@ -104,6 +104,12 @@ class Handler(SimpleHTTPRequestHandler):
                 or not background_path.is_file()
             ):
                 raise ValueError("background is not an available bundled image")
+            text_fields = {
+                key: str(payload.get(key, "")).strip()
+                for key in ("title", "subtitle", "message", "opening", "reservation", "recruitment")
+            }
+            if any(len(value) > 200 for value in text_fields.values()):
+                raise ValueError("text fields are too long")
         except (ValueError, TypeError, json.JSONDecodeError):
             self._json(400, {"error": "選択した背景画像が利用できません。"})
             return
@@ -119,6 +125,9 @@ class Handler(SimpleHTTPRequestHandler):
         ]
         if background_path is not None:
             command.extend(["--background", str(background_path)])
+        for key in ("title", "subtitle", "message", "opening", "reservation", "recruitment"):
+            if text_fields[key]:
+                command.extend([f"--{key}", text_fields[key]])
         try:
             result = subprocess.run(
                 command,

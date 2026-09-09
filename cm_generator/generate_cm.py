@@ -181,8 +181,8 @@ def generate_art(
     draw.rounded_rectangle(
         (36, panel_top, width - 36, panel_bottom),
         radius=30,
-        fill=(12, 7, 30, 205),
-        outline=(242, 228, 183, 210),
+        fill=(12, 7, 30, 0),
+        outline=(242, 228, 183, 100),
         width=2,
     )
     draw.text(

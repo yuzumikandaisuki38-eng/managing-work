@@ -184,13 +184,22 @@ def generate_art(
     footer_font = japanese_font(19)
     panel_top = int(height * 0.23)
     panel_bottom = int(height * 0.84)
-    draw.rounded_rectangle(
-        (36, panel_top, width - 36, panel_bottom),
-        radius=30,
-        fill=(12, 7, 30, 0),
-        outline=(242, 228, 183, 100),
-        width=2,
-    )
+    box_left, box_right = 48, width - 48
+    box_fill = (12, 7, 30, 0)
+    box_outline = (255, 224, 112, 150)
+
+    def text_box(top: int, bottom: int) -> None:
+        draw.rounded_rectangle(
+            (box_left, top, box_right, bottom),
+            radius=18,
+            fill=box_fill,
+            outline=box_outline,
+            width=2,
+        )
+
+    # Seven balanced transparent boxes: heading, three message lines, and
+    # three closing notices.
+    text_box(panel_top, panel_top + 160)
     draw.text(
         (width // 2, panel_top + 62),
         title,
@@ -209,20 +218,26 @@ def generate_art(
         stroke_fill=(48, 21, 8, 235),
         anchor="mm",
     )
-    message_lines = three_line_message(message or CM_RESERVATION)
-    draw.multiline_text(
-        (width // 2, panel_top + 250),
-        message_lines,
-        font=message_font,
-        fill=(255, 255, 232, 255),
-        stroke_width=3,
-        stroke_fill=(48, 21, 8, 235),
-        anchor="mm",
-        align="center",
-        spacing=13,
-    )
+    message_lines = three_line_message(message or CM_RESERVATION).splitlines()
+    message_top = panel_top + 178
+    for index, line in enumerate(message_lines):
+        top = message_top + index * 58
+        text_box(top, top + 48)
+        draw.text(
+            (width // 2, top + 24),
+            line,
+            font=message_font,
+            fill=(255, 255, 232, 255),
+            stroke_width=3,
+            stroke_fill=(48, 21, 8, 235),
+            anchor="mm",
+        )
+    footer_top = message_top + 3 * 58 + 8
+    text_box(footer_top, footer_top + 42)
+    text_box(footer_top + 50, footer_top + 92)
+    text_box(footer_top + 100, min(panel_bottom, footer_top + 142))
     draw.text(
-        (width // 2, panel_bottom - 82),
+        (width // 2, footer_top + 21),
         opening,
         font=footer_font,
         fill=(255, 239, 120, 255),
@@ -231,7 +246,7 @@ def generate_art(
         anchor="mm",
     )
     draw.text(
-        (width // 2, panel_bottom - 64),
+        (width // 2, footer_top + 71),
         reservation,
         font=footer_font,
         fill=(255, 239, 120, 255),
@@ -240,7 +255,7 @@ def generate_art(
         anchor="mm",
     )
     draw.text(
-        (width // 2, panel_bottom - 28),
+        (width // 2, min(panel_bottom - 21, footer_top + 121)),
         recruitment,
         font=footer_font,
         fill=(255, 239, 120, 255),

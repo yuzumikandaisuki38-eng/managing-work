@@ -71,6 +71,9 @@ class Handler(SimpleHTTPRequestHandler):
         bundle_name = f"{stem}.zip"
         bundle_path = OUTPUT_DIR / bundle_name
         archive_members = [OUTPUT_DIR / f"{stem}.png", OUTPUT_DIR / f"{stem}.wav"]
+        editable_svg = OUTPUT_DIR / f"{stem}_canva_editable.svg"
+        if editable_svg.exists():
+            archive_members.append(editable_svg)
         video_path = OUTPUT_DIR / f"{stem}.mp4"
         if video_path.exists():
             archive_members.append(video_path)
@@ -149,6 +152,9 @@ class Handler(SimpleHTTPRequestHandler):
             f"/generated/{stem}.png",
             f"/generated/{stem}.wav",
         ]
+        editable_svg = OUTPUT_DIR / f"{stem}_canva_editable.svg"
+        if editable_svg.exists():
+            files.append(f"/generated/{editable_svg.name}")
         video = OUTPUT_DIR / f"{stem}.mp4"
         if video.exists():
             files.append(f"/generated/{stem}.mp4")

@@ -9,7 +9,9 @@ files are still produced.
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
+import html
 import subprocess
 import wave
 from pathlib import Path
@@ -287,6 +289,51 @@ def generate_art(
     Image.alpha_composite(art, stars).convert("RGB").save(path, quality=95)
 
 
+def generate_editable_svg(
+    path: Path,
+    background: Path | None,
+    message: str,
+    title: str = CM_TITLE,
+    subtitle: str = CM_SUBTITLE,
+    opening: str = CM_OPENING,
+    reservation: str = CM_RESERVATION,
+    recruitment: str = CM_RECRUITMENT,
+) -> None:
+    """Write a Canva-friendly SVG with a separate image and text elements."""
+    if background is None or not background.exists():
+        background = DEFAULT_BACKGROUND
+    encoded = base64.b64encode(background.read_bytes()).decode("ascii")
+    media_type = "image/png" if background.suffix.lower() == ".png" else (
+        "image/webp" if background.suffix.lower() == ".webp" else "image/jpeg"
+    )
+    lines = three_line_message(message or CM_RESERVATION).splitlines()
+    texts = [
+        (360, 235, title, 48),
+        (360, 298, subtitle, 29),
+        (360, 430, lines[0], 24),
+        (360, 488, lines[1], 24),
+        (360, 546, lines[2], 24),
+        (360, 650, opening, 19),
+        (360, 700, reservation, 19),
+        (360, 750, recruitment, 19),
+    ]
+    text_elements = "\n".join(
+        f'  <text x="{x}" y="{y}" font-family="Hiragino Kaku Gothic ProN, sans-serif" '
+        f'font-size="{size}" text-anchor="middle" fill="#fff06a" stroke="#301508" '
+        f'stroke-width="3" paint-order="stroke">{html.escape(text)}</text>'
+        for x, y, text, size in texts
+    )
+    path.write_text(
+        f'''<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+  <title>{html.escape(title)}</title>
+  <image href="data:{media_type};base64,{encoded}" x="0" y="0" width="720" height="1280" preserveAspectRatio="xMidYMid slice"/>
+{text_elements}
+</svg>
+''',
+        encoding="utf-8",
+    )
+
+
 def generate_music(path: Path, seed: int, seconds: int = 12, sample_rate: int = 44100) -> None:
     t = np.arange(seconds * sample_rate) / sample_rate
     # Original calm cafe/lounge-inspired harmony; this does not copy the
@@ -370,6 +417,7 @@ def main() -> None:
     image = args.output_dir / f"{stem}.png"
     music = args.output_dir / f"{stem}.wav"
     video = args.output_dir / f"{stem}.mp4"
+    editable_svg = args.output_dir / f"{stem}_canva_editable.svg"
     generate_art(
         image,
         seed,
@@ -387,6 +435,16 @@ def main() -> None:
     else:
         generate_music(music, seed)
     generate_video(image, music, video)
+    generate_editable_svg(
+        editable_svg,
+        args.background,
+        message,
+        args.title,
+        args.subtitle,
+        args.opening,
+        args.reservation,
+        args.recruitment,
+    )
     print(f"Generated: {image} and {music}")
     print(f"CM message: {message}")
     valid = validate_assets(image, music, video)
